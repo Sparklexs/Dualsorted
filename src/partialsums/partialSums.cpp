@@ -1,5 +1,5 @@
 #include "delta.c"
-#include "rice.h"
+//#include "rice.h"
 #include <iostream>
 #include <cmath>
 
@@ -16,16 +16,16 @@ int msb(uint v)
     }
     return count;
 }
-int pow2(uint v)
-{
-	int res=0;
-	while (v)
-	{
-		res <<= 1;
-		v--;
-	}
-	return pow;
-}
+//int pow2(uint v)
+//{
+//	int res=0;
+//	while (v)
+//	{
+//		res <<= 1;
+//		v--;
+//	}
+//	return pow;
+//}
 
 typedef uint (*encodef)(uint* output, uint pos, uint value);
 typedef uint (*decodef)(uint* input, uint pos, uint* value);
@@ -211,11 +211,11 @@ int main()
 	int k = 1;
 	uint A[15] = {100,80,78,50,45,34,23,12,11,8,4,3,2,1,0};
 
-	CompressedPsums * ps = new CompressedPsums(A,n,k,rice_encode2,rice_decode);
+	CompressedPsums * ps = new CompressedPsums(A,n,k,encodeGamma,decodeGamma);
 	ps->encode();
 	cout << "size = " << ps->getSize();
-	/*for (int i = 0 ;i < 15;i++)
+	for (int i = 0 ;i < 15;i++)
 	{
 		cout << ps->decode(i) << endl;
-	}*/
+	}
 }
