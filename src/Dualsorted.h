@@ -12,20 +12,24 @@
 #include <Mapper.h>
 #include <BitSequenceRG.h>
 #include <BitString.h>
+#include "partialSums.cpp"
+//#include "delta.c"
+
 using namespace std;
 using namespace cds_static;
 using namespace __gnu_cxx;
+
+
 class Dualsorted
 {
 	private:
 		// Main Data Structures
-		BitSequence **Rt;
-		BitSequenceRRR **Tt;
+
 		WaveletTreeNoptrs *L;
 		BitSequence *st;
-		Sequence *vt;
-
-        google::sparse_hash_map<const char*, int, hash<const char*>, eqstr> terms;
+		CompressedPsums ** ps;
+        //google::sparse_hash_map<const char*, uint, hash<const char*>, eqstr> terms;
+        const char ** terms;
 		// Temporal use for construction
 		vector<int> freqs;
 		vector<vector<int>> result;
@@ -34,19 +38,17 @@ class Dualsorted
 		// Lengths
 		uint size_terms;
 		uint L_size;
+		int k;
 
 	public:
-		Dualsorted(vector<string> &terms, vector< vector<int> > &result, vector<int> &freqs,uint size_terms);
-		// Build methods
+		Dualsorted(vector<string> terms, vector< vector<int> > &result, vector<int> &freqs,uint size_terms);
 		BitSequence *buildSt();
-		BitSequence **buildRt();
-		BitSequenceRRR **buildTt();
-		Sequence * buildVt();
 		Sequence * buildL();
+		void buildSums();
 		
 		// Requested function implementations
 		uint getDocid(string term,uint i);
-		uint getFreq(string term,int i);
+		uint getFreq(const char*,int i);
 		vector < pair<uint,size_t> > mrqq(string term, size_t k, size_t kp);
 		vector <uint> range(string t,size_t x,size_t y);
 		void intersect(string t,string k);

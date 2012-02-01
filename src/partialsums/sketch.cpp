@@ -1,4 +1,24 @@
 
+
+int main()
+{
+	int n =  15;
+	int k = 1;
+	uint A[15] = {100,80,78,50,45,34,23,12,11,8,4,3,2,1,0};
+
+	CompressedPsums * ps = new CompressedPsums(A,n,k,encodeGamma,decodeGamma);
+	ps->encode();
+	cout << "size = " << ps->getSize();
+	for (int i = 0 ;i < 15;i++)
+	{
+		cout << ps->decode(i) << endl;
+	}
+}
+
+
+
+
+
 int n =  15;
 int k = 1;
 uint A[15] = {100,80,78,50,45,34,23,12,11,8,4,3,2,1,0};

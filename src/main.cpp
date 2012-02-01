@@ -21,9 +21,12 @@ int main(int argc, char** argv)
 	const char* invlistfreq = argv[2];
 	const char* vocab = argv[3];	
 	const char* queries = argv[4];	
-
+	cout << "Invlist = " << invlist << endl;
+	cout << "Invlist w/freq =" << invlistfreq << endl;
+	cout << "vocab = " << vocab << endl;
+	cout << "queries " << queries << endl;
 	ifstream wordsfile;
-	wordsfile.open(queries);
+	wordsfile.open(vocab);
 	vector <string> words;
 	string line;
 
@@ -33,6 +36,7 @@ int main(int argc, char** argv)
 		words.push_back(line);
 	}
 	uint count = words.size();
+	cout << "count = " << count << endl;
 	wordsfile.close();
 
 	ifstream docfile;
@@ -68,6 +72,7 @@ int main(int argc, char** argv)
 			freqs.push_back(atoi(strs2[i].c_str()));
 		}
 	}
+	
 	docfile.close();
 	words.pop_back();
 	result.pop_back();
@@ -104,7 +109,10 @@ double total = 0;
                 vector <uint> test = ds->range(q[x],0,2);	
                 for (uint i = 0 ; i < test.size();i++)
 	            {
-                    documents[test[i]] = documents[test[i]]+ds->getFreq(q[x],ds->getPosTerm(q[x],test[i])); 
+	            	cout << "test[i]" << test[i] << endl;
+	            	const char* qq = q[x].c_str();
+	            	cout << " q= " << qq << endl;
+                    documents[test[i]] = documents[test[i]]+ds->getFreq(qq,i); 
 	            }
             }
             finish = clock();

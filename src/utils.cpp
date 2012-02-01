@@ -9,13 +9,13 @@
 #include <string.h>
 
 using namespace std;
-struct eqstr
-{
-  bool operator()(const char* s1, const char* s2) const
-  {
-    return strcmp(s1, s2) == 0;
-  }
-};
+   struct eqstr
+    {
+      bool operator()(const char* s1, const char* s2) const
+      {
+        return (s1 == s2) || (s1 && s2 && strcmp(s1, s2) == 0);
+      }
+    };
 
 vector <string> getFiles(string dir)
 {

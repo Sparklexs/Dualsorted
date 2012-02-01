@@ -2,31 +2,54 @@
 
 using namespace cds_static;
 
-Dualsorted::Dualsorted(vector<string> &terms, vector< vector<int> > &result, vector<int> &freqs,uint size_terms)
+
+uint search(const char** a,const char* s,uint n)
+{
+	uint l = 0;
+	uint r = n-1;
+	
+	while (l <= r)
+	{
+		uint m = (l+r)/2;	
+		if (strcmp(a[m],s) == 0)
+			return m;
+		else if (strcmp(s,a[m]) > 0)
+			l = m+1;
+		else 
+			r = m-1;		
+	}
+	return -1;
+}
+
+
+Dualsorted::Dualsorted(vector<string> vocab, vector< vector<int> > &result, vector<int> &freqs,uint size_terms)
 {
     cout << "Amount of terms: " << size_terms << endl;
-    for (uint i = 0 ; i < size_terms; i++)
+    this->terms = new const char*[size_terms];
+    for (int i =0 ; i < vocab.size();i++)
     {
-        this->terms[terms[i].c_str()] = i;
+    	this->terms[i] = vocab[i].c_str();
     }
+    cout << "searching" << endl;
+    cout << search(this->terms,"wikipedia",size_terms) << endl;
+    
+       
 	this->result = result;
 	this->freqs = freqs;
 	this->size_terms = size_terms;
 
-	cout << "Building St..." << endl;
-	this->buildSt();
+	this->k = 10;
 	
-	cout << "Building Tt..." << endl;
-	this->buildTt();
-	
-	cout << "Building Rt..." << endl;
-	this->buildRt();
 
-	cout << "Building Vt..." << endl;
-	this->buildVt();	
-	
-	cout << "Building L" << endl;
+	cout << "Building St...";
+	this->buildSt();
+	cout << "Done!" << endl;
+	cout << "Building PartialSums...";
+	this->buildSums();
+	cout << "Done!" << endl;
+	cout << "Building L..."; 
 	this->buildL();	
+	cout << "Done!" << endl;
 	
 	this->result.clear();
 	this->freqs.clear();
@@ -37,8 +60,7 @@ Dualsorted::Dualsorted(vector<string> &terms, vector< vector<int> > &result, vec
 size_t Dualsorted::getSize()
 {
 	size_t size = 0;
-	size_t size_tt = 0;
-	size_t size_rt = 0;
+	size_t size_ps = 0;
 	
     double sparse_tt = 0;
     double sparse_rt = 0;
@@ -47,69 +69,25 @@ size_t Dualsorted::getSize()
     
 	cout << "L size: " << this->L->getSize() << endl;
 	cout << "st size: " << this->st->getSize() << endl;
-	cout << "vt size: " << this->vt->getSize() << endl;
-
 	size += this->L->getSize();
 	size += this->st->getSize();
-	size += this->vt->getSize();
 
-	for (uint i = 0 ; i < this->size_terms;i++)
+
+	/*for (uint i = 0 ; i < this->size_terms;i++)
 	{
-		size_tt += this->Tt[i]->getSize();
-		sparse_tt += this->Tt[i]->countOnes();
-		len_tt += this->Tt[i]->getLength();
-		
-		size_rt += this->Rt[i]->getSize();
-		sparse_rt += this->Rt[i]->countOnes();
-		len_rt += this->Rt[i]->getLength();
+		size_ps += this->ps[i]->getSize();
 	}
-	double tt_sp = (sparse_tt/len_tt)*100;
-	double rt_sp = (sparse_rt/len_rt)*100;
-
-    cout << "tt sparse: " << tt_sp << " % | " << sparse_tt << " / " << len_tt <<  endl;
-    cout << "rt sparse: " << rt_sp << " % | " << sparse_rt << " / " << len_rt <<  endl;
-	cout << "tt size: " << size_tt << endl;
-	cout << "rt size: " << size_rt << endl;
-
-	size += size_tt;
-	size += size_rt;
+	cout << "partial_sums: " << size_ps << endl;
+	size += size_ps;*/
 	cout << "Total size: " << size << endl;
 	return size;
 }
-// two options: 
-// 1.Hashmap for this->Terms? 
-// 2.Leave it this way?
-
-Sequence * Dualsorted::buildL()
-{
-	uint *sequence = new uint[this->L_size];
-	uint m2a = 0;
-	for (int i = 0 ; i < this->size_terms;i++)
-	{
-		for (int j = 0 ; j < result[i].size();j++)
-		{
-			sequence[m2a] = result[i][j];
-			m2a++;
-		}
-	}
-	Array *A = new Array(sequence,this->L_size);
-	MapperNone * map = new MapperNone();
-    
-   	//BitSequenceBuilder * bsb = new BitSequenceBuilderRRR(128);
-   	BitSequenceBuilder * bsb = new BitSequenceBuilderRG(30);
-   	WaveletTreeNoptrs* seq = new WaveletTreeNoptrs(*A, bsb, map);		
-
-	this->L = seq;
-        return this->L;
-
-}
-
 
 uint Dualsorted::getDocid(string term,uint i)
 {
 	uint f = this->getTermPosition(term.c_str());
 	uint end,start;
-	(f != this->terms.size()-1) ? end = this->st->select1(f+2)-1 : end = this->L_size-1;		                                             
+	(f != this->size_terms-1) ? end = this->st->select1(f+2)-1 : end = this->L_size-1;		                                             
 	start = this->st->select1(f+1);
 	return this->L->range(start,end,i);
 }
@@ -121,15 +99,20 @@ uint Dualsorted::getPosTerm(string t,uint d)
     uint start = this->st->select1(f+1);
     return this->L->select(d,1+this->L->rank(d,start-1)) - start;
 }
-uint Dualsorted::getFreq(string term,int i)
+uint Dualsorted::getFreq(const char* term,int i)
 {
-	uint f = this->getTermPosition(term.c_str());
-	return (this->Tt[f]->select1(this->vt->access(f) - this->Rt[f]->rank1(i)+1))+1;
+	uint j = this->getTermPosition(term);
+	cout << "term = " << term << endl;
+	cout << "i = " << i << endl;
+	if (j != 0)
+	return this->ps[j-1]->decode(i);
+	else
+	return 0;
 }
 
 uint Dualsorted::getTermPosition(const char *t)
 {
-	return this->terms[t];
+	return search(this->terms,t,this->size_terms);
 }
 
 vector <uint> Dualsorted::range(string term, size_t x, size_t y)
@@ -150,12 +133,12 @@ void Dualsorted::intersect(string term, string term2)
 	uint start1 = this->st->select1(f+1);
 	uint start2 = this->st->select1(f2+1);
 	
-	if (f != this->terms.size()-1)
+	if (f != this->size_terms-1)
 		end1 = this->st->select1(f+2)-1;
 	else
 		 end1 = this->L_size-1;		
 
-	if (f2 != this->terms.size()-1)
+	if (f2 != this->size_terms-1)
 		end2 = this->st->select1(f2+2)-1;
 	else
 		 end2 = this->L_size-1;		
@@ -166,10 +149,93 @@ vector < pair<uint,size_t> > Dualsorted::mrqq(string term, size_t k, size_t kp)
 {
 	uint f = this->getTermPosition(term.c_str());
 	uint end,start;
-	(f != this->terms.size()-1) ? end = this->st->select1(f+2)-1 : end = this->L_size-1;		                                             
+	(f != this->size_terms-1) ? end = this->st->select1(f+2)-1 : end = this->L_size-1;		                                             
 	start = this->st->select1(f+1);
 	return this->L->mrqq(start,end,k,kp);
 }
+
+
+
+BitSequence *Dualsorted::buildSt()
+{
+	uint m2a = 0;
+	for (int i = 0 ;i<this->size_terms;i++)
+	{	
+		m2a = m2a + result[i].size();		
+	}
+	this->L_size = m2a;
+	BitString *bs = new BitString(m2a);	
+	m2a = 0;
+	for (int i = 0 ;i<this->size_terms;i++)
+	{	
+		bs->setBit(m2a);
+		m2a = m2a + result[i].size();		
+	}
+
+	BitSequenceRG *bsrg = new BitSequenceRG(*bs,20);
+	this->st = bsrg;
+
+	return this->st;
+}
+void Dualsorted::buildSums()
+{
+	this->ps = new CompressedPsums*[this->size_terms];
+	uint now,next;
+	for (int i = 0 ; i < this->size_terms-1;i++)
+	{
+	//		cout << "entering 2" << endl;
+			now = this->st->select1(i+1);
+			next = this->st->select1(i+2);
+		//	cout << "i=" << i <<  " term = " << this->terms[i] << endl;
+			if (next > 4294967290)
+				break;
+		//	cout << "now = " << now << " next = " << next << endl;
+			uint f = 0;
+			uint *A;
+			A = new uint[next-now+1];
+			for (uint j = now;j<next;j++)
+			{
+				
+				A[f] = this->freqs[j];
+				cout << "A[" << f << "] = " << A[f] << endl;
+				f++;
+				
+			}	
+	//		cout << "entering 3" << endl;
+			//cout << "i=" << i << endl;
+			ps[i] = new CompressedPsums(A,f,10,encodeGamma,decodeGamma);
+			ps[i]->encode();
+	}
+	cout << endl << "decodificando:" << ps[869]->decode(0) << endl;
+}
+
+
+Sequence * Dualsorted::buildL()
+{
+	uint *sequence = new uint[this->L_size];
+	uint m2a = 0;
+	uint m2a2 = 0;
+	for (int i = 0 ; i < result.size();i++)
+	{
+		m2a2 += result[i].size();
+		for (int j = 0 ; j < result[i].size();j++)
+		{
+				sequence[m2a] = result[i][j];
+				m2a++;
+		}
+	}
+	Array *A = new Array(sequence,this->L_size);
+	MapperNone * map = new MapperNone();
+    
+   	//BitSequenceBuilder * bsb = new BitSequenceBuilderRRR(128);
+   	BitSequenceBuilder * bsb = new BitSequenceBuilderRG(30);
+   	WaveletTreeNoptrs* seq = new WaveletTreeNoptrs(*A, bsb, map);		
+
+	this->L = seq;
+    return this->L;
+
+}
+
 void Dualsorted::test()
 {
 /*	cout << "testing st.... " << endl;
@@ -211,112 +277,3 @@ void Dualsorted::test()
 	}
 	cout << "End testing... " << endl;*/
 }
-
-
-BitSequence *Dualsorted::buildSt()
-{
-	int m2a = 0;
-	for (int i = 0 ;i<this->size_terms;i++)
-	{	
-		m2a = m2a + result[i].size();		
-	}
-	this->L_size = m2a;
-	BitString *bs = new BitString(m2a);	
-	m2a = 0;
-	for (int i = 0 ;i<this->size_terms;i++)
-	{	
-		bs->setBit(m2a);
-		m2a = m2a + result[i].size();		
-	}
-
-	BitSequenceRG *bsrg = new BitSequenceRG(*bs,20);
-	this->st = bsrg;
-
-	return this->st;
-}
-
-BitSequenceRRR **Dualsorted::buildTt()
-{
-
-	this->Tt =  new BitSequenceRRR*[this->size_terms];
-	int count = 0;
-	uint now = 0;
-	uint next = 0;
-	int max = -1;
-	for (uint i = 0 ; i < this->size_terms;i++)
-	{
-		max = -1;
-		now = this->st->select1(i+1);
-		next = this->st->select1(i+2);
-		if (i == this->size_terms - 1)
-		next = now+1;	
-		for (uint j = now ;j<next;j++)
-		{
-			if (max < (int)this->freqs[j])
-				max = (int)this->freqs[j];
-		}
-		BitString *Tt_aux = new BitString(max);
-		for (uint j = now;j<next;j++)
-		{
-			Tt_aux->setBit(this->freqs[j]-1);
-		}
-		BitSequenceRRR *btrg = new BitSequenceRRR(*Tt_aux);
-		this->Tt[count] = btrg;
-		count++;
-
-	}
-	return this->Tt;
-}
-
-Sequence *Dualsorted::buildVt()
-{
-	uint *sequence = new uint[this->size_terms];
-	
-	for (uint i = 0 ; i < this->size_terms;i++)
-	{	
-		int aux =0;
-		for (size_t j = 0 ; j < this->Tt[i]->getLength();j++)
-		{	
-			if (this->Tt[i]->access(j))
-				aux++;
-		}
-		sequence[i] = aux;
-	}
-	Array *A = new Array(sequence,this->size_terms);
-	MapperNone * map = new MapperNone();
-    	BitSequenceBuilder * bsb = new BitSequenceBuilderRG(20);
-	Sequence * seq = new WaveletTreeNoptrs(*A, bsb, map);		
-	this->vt = seq;
-	return this->vt;
-}
-
-BitSequence **Dualsorted::buildRt()
-{
-	this->Rt =  new BitSequence*[this->size_terms];
-	uint count = 0;
-	uint countf = 1;
-	uint now = 0;
-	uint next = 0;
-	for (int i = 0 ; i < this->size_terms;i++)
-	{	
-		int next = 0;
-		now = this->st->select1(i+1);
-		next = this->st->select1(i+2);
-		if (i == this->size_terms - 1)
-		next = now+2;		
-		BitString *bs = new BitString((size_t)(next-now));
-		bs->setBit(0);
-		countf = 0;
-		for (int j = now;j<next;j++)
-		{
-			countf++;
-			if (this->freqs[j] != this->freqs[j+1])
-					bs->setBit(countf);
-		}
-		this->Rt[count] = new BitSequenceRG(*bs,1000);
-		count++;
-	}
-	return this->Rt;
-
-}
-
