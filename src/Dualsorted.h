@@ -33,11 +33,10 @@ class Dualsorted
 
 		// Lengths
 		uint size_terms;
-		uint size_freq;
 		uint L_size;
 
 	public:
-		Dualsorted(vector<string> &terms, vector< vector<int> > &result, vector<int> &freqs,uint size_terms, uint size_freq);
+		Dualsorted(vector<string> &terms, vector< vector<int> > &result, vector<int> &freqs,uint size_terms);
 		// Build methods
 		BitSequence *buildSt();
 		BitSequence **buildRt();

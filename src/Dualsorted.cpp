@@ -1,10 +1,8 @@
 #include "Dualsorted.h"
 
-
 using namespace cds_static;
 
-
-Dualsorted::Dualsorted(vector<string> &terms, vector< vector<int> > &result, vector<int> &freqs,uint size_terms, uint size_freq)
+Dualsorted::Dualsorted(vector<string> &terms, vector< vector<int> > &result, vector<int> &freqs,uint size_terms)
 {
     cout << "Amount of terms: " << size_terms << endl;
     for (uint i = 0 ; i < size_terms; i++)
@@ -14,7 +12,6 @@ Dualsorted::Dualsorted(vector<string> &terms, vector< vector<int> > &result, vec
 	this->result = result;
 	this->freqs = freqs;
 	this->size_terms = size_terms;
-	this->size_freq = size_freq;
 
 	cout << "Building St..." << endl;
 	this->buildSt();
@@ -175,46 +172,44 @@ vector < pair<uint,size_t> > Dualsorted::mrqq(string term, size_t k, size_t kp)
 }
 void Dualsorted::test()
 {
-//	cout << "testing st.... " << endl;
-//	for (uint i = 0 ; i < this->L_size;i++)
-//		cout << this->st->access(i) << endl;
-	/*
+/*	cout << "testing st.... " << endl;
+	for (uint i = 0 ; i < this->L_size;i++)
+		cout << this->st->access(i) << endl;
+	
 	// Testing Tt
 	uint now = 0;
 	uint next = 0;
-//	cout << "testing Tt.... " << endl;
+	cout << "testing Tt.... " << endl;
 
 	for (uint i = 0 ; i < this->size_terms;i++)
 	{
-	//	cout << this->terms[i] << endl;
+		cout << this->terms[i] << endl;
 		for (int j = 0 ;j<this->Tt[i]->getLength();j++)
 		{
-//			cout << this->Tt[i]->access(j) << endl;
+			cout << this->Tt[i]->access(j) << endl;
 		}
 	}
-//	cout << "testing Rt.... " << endl;
+	cout << "testing Rt.... " << endl;
 	for (uint i = 0 ; i < this->size_terms;i++)
 	{
-	//	cout << this->terms[i] << endl;
+		cout << this->terms[i] << endl;
 	
 		for (int j = 0 ;j<this->Rt[i]->getLength();j++)
 		{
-//			cout << this->Rt[i]->access(j) << endl;
+			cout << this->Rt[i]->access(j) << endl;
 		}
 	}
-//	cout << "testing vt.... " << endl;
+	cout << "testing vt.... " << endl;
 	for (int i = 0 ; i < this->size_terms;i++)
 	{
-//		cout << this->vt->access(i) << endl;
+		cout << this->vt->access(i) << endl;
 	}
 	cout << "testing L " << endl;
 	for (int i = 0 ; i < L->getLength();i++)
 	{
 		cerr << this->L->access(i) << " ";
 	}
-//	cout << "End testing... " << endl;
-*/
-
+	cout << "End testing... " << endl;*/
 }
 
 
