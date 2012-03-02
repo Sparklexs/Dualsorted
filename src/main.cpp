@@ -106,13 +106,15 @@ double total = 0;
             start = clock();
             for (int x = 0;x<q.size();x++)
             {
+       //         cout << "pase1!" << endl;
                 vector <uint> test = ds->range(q[x],0,2);	
                 for (uint i = 0 ; i < test.size();i++)
 	            {
-	            	cout << "test[i]" << test[i] << endl;
+	     //       	cout << "test[i]" << test[i] << endl;
 	            	const char* qq = q[x].c_str();
-	            	cout << " q= " << qq << endl;
+	       //     	cout << " q= " << qq << endl;
                     documents[test[i]] = documents[test[i]]+ds->getFreq(qq,i); 
+             //       cout << "pase!" << endl;
 	            }
             }
             finish = clock();

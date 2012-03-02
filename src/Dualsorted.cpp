@@ -11,12 +11,17 @@ uint search(const char** a,const char* s,uint n)
 	while (l <= r)
 	{
 		uint m = (l+r)/2;	
-		if (strcmp(a[m],s) == 0)
-			return m;
-		else if (strcmp(s,a[m]) > 0)
-			l = m+1;
-		else 
-			r = m-1;		
+		if (m >= 0 && m < n)
+		{
+			if (strcmp(s,a[m]) == 0)
+				return m;
+			else if (strcmp(s,a[m]) > 0)
+				l = m+1;
+			else 
+				r = m-1;		
+		}
+		else
+			return -1;
 	}
 	return -1;
 }
@@ -30,8 +35,8 @@ Dualsorted::Dualsorted(vector<string> vocab, vector< vector<int> > &result, vect
     {
     	this->terms[i] = vocab[i].c_str();
     }
-    cout << "searching" << endl;
-    cout << search(this->terms,"wikipedia",size_terms) << endl;
+ //   cout << "searching" << endl;
+  //  cout << search(this->terms,"wikipedia",size_terms) << endl;
     
        
 	this->result = result;
@@ -102,12 +107,12 @@ uint Dualsorted::getPosTerm(string t,uint d)
 uint Dualsorted::getFreq(const char* term,int i)
 {
 	uint j = this->getTermPosition(term);
-	cout << "term = " << term << endl;
-	cout << "i = " << i << endl;
-	if (j != 0)
-	return this->ps[j-1]->decode(i);
+//	cout << "term = " << term << endl;
+//	cout << "i = " << i << endl;
+	if (j != -1)
+		return this->ps[j-1]->decode(i);
 	else
-	return 0;
+		return 0;
 }
 
 uint Dualsorted::getTermPosition(const char *t)
@@ -117,8 +122,16 @@ uint Dualsorted::getTermPosition(const char *t)
 
 vector <uint> Dualsorted::range(string term, size_t x, size_t y)
 {
+	//cout << "searching for: " << term << endl;
 	uint f = this->getTermPosition(term.c_str());
-	uint start = this->st->select1(f+1);	
+    //cout << "Executing select" << endl;
+   // cout << "f = " << f << endl;
+    if (f == -1 || f == 0 || f > 4294967290)
+    {
+    	vector <uint> blank;
+    	return blank;
+    }
+	uint start = this->st->select1(f);	
 	return this->L->range_report_aux(start+x,start+y);
 }
 
@@ -183,7 +196,7 @@ void Dualsorted::buildSums()
 	uint now,next;
 	for (int i = 0 ; i < this->size_terms-1;i++)
 	{
-	//		cout << "entering 2" << endl;
+		//	cout << "entering 2" << endl;
 			now = this->st->select1(i+1);
 			next = this->st->select1(i+2);
 		//	cout << "i=" << i <<  " term = " << this->terms[i] << endl;
@@ -197,7 +210,7 @@ void Dualsorted::buildSums()
 			{
 				
 				A[f] = this->freqs[j];
-				cout << "A[" << f << "] = " << A[f] << endl;
+		//		cout << "A[" << f << "] = " << A[f] << endl;
 				f++;
 				
 			}	
@@ -206,7 +219,7 @@ void Dualsorted::buildSums()
 			ps[i] = new CompressedPsums(A,f,10,encodeGamma,decodeGamma);
 			ps[i]->encode();
 	}
-	cout << endl << "decodificando:" << ps[869]->decode(0) << endl;
+//	cout << endl << "decodificando:" << ps[869]->decode(0) << endl;
 }
 
 

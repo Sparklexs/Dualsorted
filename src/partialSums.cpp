@@ -2,7 +2,9 @@
 //#include "rice.h"
 #include <iostream>
 #include <cmath>
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 using namespace std;
 
 const int NUM_SIZE = 32;
@@ -63,7 +65,7 @@ class CompressedPsums
 	CompressedPsums(uint *a,uint n, uint k,encodef enc,decodef dec)
 	{
 		this->n = n;
-		this->k = 3;
+		this->k = k;
 		this->a = a;
 		this->enc = enc;
 		this->dec = dec;
@@ -80,7 +82,7 @@ class CompressedPsums
 			{
 				repetitions++;
 				this->duplicate[i] = repetitions;
-				cout << "duplicate found: "<< i << " =  " << a[i-1] << endl;
+//				cout << "duplicate found: "<< i << " =  " << a[i-1] << endl;
 			}
 			else
 			{
@@ -90,14 +92,14 @@ class CompressedPsums
 
 		}
 		for (uint i = 0 ; i < n; i++)
-			cout << "duplicate[" << i << "] = " << duplicate[i] << endl;
+//			cout << "duplicate[" << i << "] = " << duplicate[i] << endl;
 
 		new_a[n-repetitions-1] = a[n-1];
 		
 		new_n = n - repetitions;
 		for (uint j = 0 ; j < new_n ; j++)
 		{
-			cout << "j = " << j << " = " << new_a[j] << endl;
+//			cout << "j = " << j << " = " << new_a[j] << endl;
 		}
 		uint NUM_BLOCKS = (new_n/this->k)+1;
 		this->s = new Psums*[NUM_BLOCKS];
@@ -111,14 +113,14 @@ class CompressedPsums
 		uint old = 0;
 		while (new_i < new_n)
 		{
-			cout << " new_i = " << new_i << endl;
-			cout << "s[" << i << "]  = "  << new_a[new_i] << endl;
+//			cout << " new_i = " << new_i << endl;
+//			cout << "s[" << i << "]  = "  << new_a[new_i] << endl;
 			s[i]->real = new_a[new_i];
 			i++;	
 			new_i = i*this->k;
 			
 		}
-		cout << "Done" << endl;
+//		cout << "Done" << endl;
 	}
 
 	uint * encode()
@@ -128,7 +130,7 @@ class CompressedPsums
 		{
 			int delta = this->new_a[i] - this->new_a[i+1];
 			b[i] = delta;
-			cout << "delta [ " << i << "] " << b[i] << endl;
+//			cout << "delta [ " << i << "] " << b[i] << endl;
 		}
 		uint *c = new uint[2];
 		uint encode_length = 0;
@@ -150,20 +152,20 @@ class CompressedPsums
 		for (int i = 1;i<new_n;i++)
 		{
 			int modulo = j*this->k;
-			cout << "modulo = " << modulo << endl;
+//			cout << "modulo = " << modulo << endl;
 			if (modulo !=0 && i % modulo == 0 )
 			{
 				this->s[j]->pos = pos;
-				cout << "entre!!!!!!!!" << endl;
-				cout << "j = " << j << endl;
-				cout << "s = " << s[j]->pos << endl;
+//				cout << "entre!!!!!!!!" << endl;
+//				cout << "j = " << j << endl;
+//				cout << "s = " << s[j]->pos << endl;
 				j++;
 			}
 			else
 			{
 				pos += this->enc(this->d,pos,b[i-1]);	
-				cout << "codificando: " << b[i-1] << endl;
-				cout << "pos = " << pos << endl;
+//				cout << "codificando: " << b[i-1] << endl;
+//				cout << "pos = " << pos << endl;
 			}		
 			
 			
@@ -175,14 +177,14 @@ class CompressedPsums
 	uint decode (uint pos)
 	{
 
-		cout << " ------- " << endl;
-		cout << "pos recibido = " << pos << endl;
+//		cout << " ------- " << endl;
+//		cout << "pos recibido = " << pos << endl;
 		int new_pos;
 
 		if (this->duplicate[pos] != 0)
 		{
 			pos = pos-this->duplicate[pos];
-			cout << " pos - duplicate = " << pos << endl;
+//			cout << " pos - duplicate = " << pos << endl;
 		}
 
 		if (pos == 0)
@@ -191,13 +193,13 @@ class CompressedPsums
 		}
 		else
 		{
-			cout << "entre con pos = " << pos << endl;
-			cout << "this->k = " << this->k << endl;
+//			cout << "entre con pos = " << pos << endl;
+//			cout << "this->k = " << this->k << endl;
 			new_pos = (pos/this->k);
 		}
-		cout << "new_pos (pos/k) = " << new_pos << endl;
+//		cout << "new_pos (pos/k) = " << new_pos << endl;
 		uint real = this->s[new_pos]->real;
-		cout << "numero real = " << real << endl;
+//		cout << "numero real = " << real << endl;
 		uint real_pos = this->s[new_pos]->pos;
 		int potencia = (pos/this->k);
 	
@@ -209,7 +211,7 @@ class CompressedPsums
 		{
 			new_pos = pos-potencia*this->k;
 		}
-		cout << "new_new_pos = " << new_pos << endl;
+	//	cout << "new_new_pos = " << new_pos << endl;
 		if (new_pos == 0)
 		{
 			return real;
@@ -219,7 +221,7 @@ class CompressedPsums
 		while(i < new_pos)
 		{
 			real_pos += this->dec(this->d,real_pos,r);
-			cout << "r[0]" << r[0] << endl;
+//			cout << "r[0]" << r[0] << endl;
 			i++;
 			real -= r[0];
 		}
@@ -233,18 +235,64 @@ class CompressedPsums
 
 };
 
-int main()
+uint *sort(uint *a,uint n)
 {
-	int n =  15;
-	int k = 1;
-	uint A[15] = {100,81,80,45,45,45,23,12,11,8,8,8,8,1,1};
-
-	CompressedPsums * ps = new CompressedPsums(A,n,k,encodeGamma,decodeGamma);
-	ps->encode();
-	cout << "size = " << ps->getSize();
-	for (int i = 0 ;i < 15;i++)
+	for (int i = 0 ; i < n;i++)
 	{
-		cout << ps->decode(i) << endl;
+		for (int j = 0 ; j < n ; j++)
+		{
+			if (a[i] < a[j])
+			{
+				uint aux = a[i];
+				a[i] = a[j];
+				a[j] = aux;
+			}
+		}
+	}
+	return a;
+}
+void test()
+{
+
+	
+	rand() % 10 + 1;
+	int n =  100;
+	int k = 1;
+	int m = 1000;
+	uint *A = new uint[n];
+	uint *B = new uint[n];
+			srand ( time(NULL) );
+
+	for (uint i = 0 ; i < n;i++)
+	{
+		A[i] = rand() % m;
+	}
+
+
+	A = sort(A,n);
+	cout << "entre" << endl;
+	for (int k = 5;k<100;k+=5)
+	{
+		cout << "testing k = " << k << endl;
+		CompressedPsums * ps = new CompressedPsums(A,n,k,encodeGamma,decodeGamma);
+
+		ps->encode();
+		cout << "size = " << ps->getSize();
+		for (int i = 0 ;i < n;i++)
+		{
+			B[i] =  ps->decode(i);
+			cout << B[i] << endl;
+		}
+
+		for (int i = 0 ; i < n ; i++)
+		{
+		//	cout << "A[" << i << "]" << "=?" << "B[" << i << "]" << "(" << A[i] << " != ? " << B[i] << ")" <<  endl;
+			if (A[i] != B[i])
+			{
+				cout << "Error: i = " << i << " A != B ( " << A[i] << " != " << B[i] << " ) " << endl;
+				exit(0);
+			}
+		}
 	}
 }
 
