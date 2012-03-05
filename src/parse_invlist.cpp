@@ -58,33 +58,36 @@ public:
 
 		string sfilter = " (),:.;\t\"\'!?-_\0\n[]=#{}";
 		string line;
-		vector <string> terms;
 		for (size_t doc_id = 0; doc_id < files.size()-1;doc_id++)
 		{
-			if (doc_id % (files.size()/100) == 0)
+			if (doc_id % (files.size()-1/100) == 0)
 				cout << "progress:" << (doc_id/files.size())*100 << endl;
 			ifstream data (files[doc_id].c_str());
 			if (data.is_open())
 		  	{
 		   	 while ( data.good() )
 		   	 {
+        		vector <string> terms;
 		   	   getline (data,line);
-		  
 		   	   Tokenize(line,terms,sfilter);
 		   	   for (size_t i = 0 ; i < terms.size() ;i++)
 		   	   {
+		   	   		cout << "term = " << terms[i] << endl;
 		   	   		if(this->plists[terms[i]].size() == 0)
 		   	   		{
+		   	   			cout << "creating a fresh new vector for : " << terms[i] << " in document = " << doc_id << endl;
 	  	   	   			this->plists[terms[i]].push_back(Plist(1,doc_id));
 		   	   		}
 		   	   		else if (this->plists[terms[i]][this->plists[terms[i]].size()-1].doc_id != doc_id)
 		   	   		{
+		   	   			cout << "creating a new vector for : " << terms[i] << " in document = " << doc_id << endl;
 		   	   			this->plists[terms[i]].push_back(Plist(1,doc_id));
 		   	   		} 
 		   	   		else
 		   	   		{
 		   	   			size_t pos = this->plists[terms[i]].size();
 		   	   			this->plists[terms[i]][pos-1].frequency++;
+		   	   			cout << "Updating " << terms[i] << " frequency = " << this->plists[terms[i]][pos-1].frequency << " on doc =" << doc_id << endl;
 		   	   		}
 		   	   }
 
@@ -100,11 +103,11 @@ public:
 		map<string,vector <Plist> >::iterator it;
 		for ( it=plists.begin() ; it != plists.end(); it++ )
 		{
-			for (size_t i = 0 ;i < (*it).second.size()-1;i++ )
+			for (size_t i = 0 ;i < (*it).second.size();i++ )
 			{
 				for (size_t j = 0 ;j < (*it).second.size();j++ )
 				{
-					if ((*it).second[i].frequency < (*it).second[j].frequency )
+					if ((*it).second[i].frequency > (*it).second[j].frequency )
 					{
 						Plist aux = (*it).second[i];
 						(*it).second[i] = (*it).second[j];
@@ -132,7 +135,7 @@ public:
 				Plist aux = (*it).second[i];
 				invlist_file << " " <<  aux.doc_id;
 				invlistfreq_file <<  " " << aux.frequency;
-		//		cout << "term = " << (*it).first << " doc_id = " << aux.doc_id << " frequency = " << aux.frequency << endl;
+				cout << "term = " << (*it).first << " doc_id = " << aux.doc_id << " frequency = " << aux.frequency << endl;
 			}
 		invlist_file << endl;
 		invlistfreq_file << endl;
