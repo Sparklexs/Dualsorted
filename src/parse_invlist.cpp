@@ -61,7 +61,7 @@ public:
 		for (size_t doc_id = 0; doc_id < files.size()-1;doc_id++)
 		{
 			if (doc_id % ((files.size()-1)/100) == 0)
-				cout << "progress:" << (float)((doc_id/files.size())*100) << endl;
+				printf("progress %f \n",(double)((double)(doc_id)/(double)files.size())*100);
 			ifstream data (files[doc_id].c_str());
 			if (data.is_open())
 		  	{
