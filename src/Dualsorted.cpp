@@ -78,12 +78,12 @@ size_t Dualsorted::getSize()
 	size += this->st->getSize();
 
 
-	/*for (uint i = 0 ; i < this->size_terms;i++)
+	for (uint i = 0 ; i < this->size_terms-1;i++)
 	{
 		size_ps += this->ps[i]->getSize();
 	}
 	cout << "partial_sums: " << size_ps << endl;
-	size += size_ps;*/
+	size += size_ps;
 	cout << "Total size: " << size << endl;
 	return size;
 }
