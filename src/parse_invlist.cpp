@@ -44,7 +44,7 @@ public:
 	   	 while ( data.good() )
 	   	 {
 	   	   getline (data,line);
-	   	   cout << "adding files:" << line << endl;
+	  // 	   cout << "adding files:" << line << endl;
 	   	   files.push_back(line);
 	   	 }
 	   	 data.close();
@@ -60,8 +60,8 @@ public:
 		string line;
 		for (size_t doc_id = 0; doc_id < files.size()-1;doc_id++)
 		{
-			if (doc_id % (files.size()-1/100) == 0)
-				cout << "progress:" << (doc_id/files.size())*100 << endl;
+			if (doc_id % ((files.size()-1)/100) == 0)
+				cout << "progress:" << (float)((doc_id/files.size())*100) << endl;
 			ifstream data (files[doc_id].c_str());
 			if (data.is_open())
 		  	{
@@ -72,22 +72,22 @@ public:
 		   	   Tokenize(line,terms,sfilter);
 		   	   for (size_t i = 0 ; i < terms.size() ;i++)
 		   	   {
-		   	   		cout << "term = " << terms[i] << endl;
+		   	 //  		cout << "term = " << terms[i] << endl;
 		   	   		if(this->plists[terms[i]].size() == 0)
 		   	   		{
-		   	   			cout << "creating a fresh new vector for : " << terms[i] << " in document = " << doc_id << endl;
+		   	  // 			cout << "creating a fresh new vector for : " << terms[i] << " in document = " << doc_id << endl;
 	  	   	   			this->plists[terms[i]].push_back(Plist(1,doc_id));
 		   	   		}
 		   	   		else if (this->plists[terms[i]][this->plists[terms[i]].size()-1].doc_id != doc_id)
 		   	   		{
-		   	   			cout << "creating a new vector for : " << terms[i] << " in document = " << doc_id << endl;
+		   	   //			cout << "creating a new vector for : " << terms[i] << " in document = " << doc_id << endl;
 		   	   			this->plists[terms[i]].push_back(Plist(1,doc_id));
 		   	   		} 
 		   	   		else
 		   	   		{
 		   	   			size_t pos = this->plists[terms[i]].size();
 		   	   			this->plists[terms[i]][pos-1].frequency++;
-		   	   			cout << "Updating " << terms[i] << " frequency = " << this->plists[terms[i]][pos-1].frequency << " on doc =" << doc_id << endl;
+		   	   //			cout << "Updating " << terms[i] << " frequency = " << this->plists[terms[i]][pos-1].frequency << " on doc =" << doc_id << endl;
 		   	   		}
 		   	   }
 
@@ -135,7 +135,7 @@ public:
 				Plist aux = (*it).second[i];
 				invlist_file << " " <<  aux.doc_id;
 				invlistfreq_file <<  " " << aux.frequency;
-				cout << "term = " << (*it).first << " doc_id = " << aux.doc_id << " frequency = " << aux.frequency << endl;
+				//cout << "term = " << (*it).first << " doc_id = " << aux.doc_id << " frequency = " << aux.frequency << endl;
 			}
 		invlist_file << endl;
 		invlistfreq_file << endl;
