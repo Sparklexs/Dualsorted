@@ -3,8 +3,14 @@
 #include "utils.cpp"
 #include <string>
 #include <map>
+#include <omp.h>
 
 using namespace std;
+
+
+
+
+
 
 class Plist
 {
@@ -30,7 +36,24 @@ public:
 	{
 		cout << "got filename:" << f << endl;
 		this->prefix = prefix;
-		this->process(getData(f));
+		int id;
+		int doc_id = 0;
+		vector <string> files = getData(f);
+		map<string,vector <Plist> > plist = this->plists;
+		
+	//		#pragma omp parallel for private(doc_id,id) shared(plist,files)
+			for (doc_id = 0 ; doc_id < files.size()-1;doc_id++)
+			{
+	//			id = omp_get_thread_num();
+	//			#pragma omp critical
+	//			{
+	//				cout << "executing thread = " << id << " with file = " << doc_id << endl;
+	//			}
+	//			#pragma omp task
+				this->process(files,plist,doc_id);
+			}
+			sort_and_write(plist);
+		
 	}
 
 	vector<string> getData(string f)
@@ -53,57 +76,121 @@ public:
 	  	return files;
 	}
 
-	void process(vector <string> files)
+	map<string,vector <Plist> > process(vector <string> files,map<string,vector <Plist> > &plist,int doc_id)
 	{
 
 		string sfilter = " (),:.;\t\"\'!?-_\0\n[]=#{}";
 		string line;
-		for (size_t doc_id = 0; doc_id < files.size()-1;doc_id++)
-		{
-			if (doc_id % ((files.size()-1)/100) == 0)
-				printf("progress %f \n",(double)((double)(doc_id)/(double)files.size())*100);
-			ifstream data (files[doc_id].c_str());
-			if (data.is_open())
-		  	{
-		   	 while ( data.good() )
-		   	 {
-        		vector <string> terms;
-		   	   getline (data,line);
-		   	   Tokenize(line,terms,sfilter);
-		   	   for (size_t i = 0 ; i < terms.size() ;i++)
-		   	   {
-		   	 //  		cout << "term = " << terms[i] << endl;
-		   	   		if(this->plists[terms[i]].size() == 0)
-		   	   		{
-		   	  // 			cout << "creating a fresh new vector for : " << terms[i] << " in document = " << doc_id << endl;
-	  	   	   			this->plists[terms[i]].push_back(Plist(1,doc_id));
-		   	   		}
-		   	   		else if (this->plists[terms[i]][this->plists[terms[i]].size()-1].doc_id != doc_id)
-		   	   		{
-		   	   //			cout << "creating a new vector for : " << terms[i] << " in document = " << doc_id << endl;
-		   	   			this->plists[terms[i]].push_back(Plist(1,doc_id));
-		   	   		} 
-		   	   		else
-		   	   		{
-		   	   			size_t pos = this->plists[terms[i]].size();
-		   	   			this->plists[terms[i]][pos-1].frequency++;
-		   	   //			cout << "Updating " << terms[i] << " frequency = " << this->plists[terms[i]][pos-1].frequency << " on doc =" << doc_id << endl;
-		   	   		}
-		   	   }
+				int id;
+				//	if (doc_id % ((files.size()+1)/100) == 0)
+				//		printf("progress %f \n",(double)((double)(doc_id)/(double)files.size())*100);
+					ifstream data (files[doc_id].c_str());
+					if (data.is_open())
+				  	{
+				   	 while (data.good())
+				   	 {
+					   		vector <string> terms;
+				   	   		getline (data,line);
+				   	   		Tokenize(line,terms,sfilter);
+				   	   		size_t i;
+				   	   	    #pragma omp parallel for private(id)
+	               	   	//	#pragma omp parallel shared ( plist )
+   					   	   for (i = 0 ; i < terms.size() ;i++)
+					   	   {
+										
+						  				#pragma omp critical
+										{
+										id = omp_get_thread_num();
+						   	   			cout << "Thread = " << id <<" with term = " << terms[i] << endl;
+							   	   		if(plist[terms[i]].size() == 0)
+							   	   		{
+							   	  			cout << "creating a fresh new vector for : " << terms[i] << " in document = " << doc_id << endl;
+						  	   	   			plist[terms[i]].push_back(Plist(1,doc_id));
+						  	   	   		
+							   	   		}
+							   	   		else if (plist[terms[i]][plist[terms[i]].size()-1].doc_id != doc_id)
+							   	   		{
+							   	   			cout << "creating a new vector for : " << terms[i] << " in document = " << doc_id << endl;
+							   	   			plist[terms[i]].push_back(Plist(1,doc_id));
+							   	   		
+							   	   		} 
+							   	   		else
+							   	   		{
+							   	   			size_t pos = plist[terms[i]].size();
+							   	   			plist[terms[i]][pos-1].frequency++;
+							   	   			cout << "Updating " << terms[i] << " frequency = " << plist[terms[i]][pos-1].frequency << " on doc =" << doc_id << endl;
+							   	   		
+							   	   		}
+							   	   	}
+					   	   	
+					   	   		}
+				   	 }
+				    data.close();
+					} else
+				  	{
+				  		cout << "error opening file" << endl;
+				  	}
+		return plist;
+	}
+	
 
-		   	 }
-		   	 data.close();
-		  	} else
-		  	{
-		  		cout << "error opening file" << endl;
-		  	}
-		}
+void Sort(vector< Plist >::iterator start, vector< Plist >::iterator end)
+{
+    int numProcs = omp_get_num_procs();
+    omp_set_num_threads(numProcs);
+    #pragma omp parallel
+    {
+        #pragma omp single nowait
+        Sort_h(start, end-1);
+    }
+}
+ 
+void Sort_h(vector< Plist >::iterator start, vector< Plist >::iterator end)
+{
+    if(start < end)
+    {        
+            int q = Partition(start, end);
+            #pragma omp task
+            {
+                Sort_h(start, start + (q - 1));
+            }
+            Sort_h(start + (q + 1), end);
+    }
+}
+ 
+int Partition(vector< Plist >::iterator start, vector< Plist >::iterator end)
+{
+    int partitionIndex =  (end - start)/2;
+    int privotValue = start[partitionIndex].frequency;
+    Plist tmp = start[partitionIndex];
+    start[partitionIndex] = *end;
+    *end = tmp;
+    int swapIndex = 0;
+    for (int i = 0; i < end - start; i++)
+    {
+        if(start[i].frequency >= privotValue)
+        {
+            tmp = start[swapIndex];
+            start[swapIndex] = start[i];
+            start[i] = tmp;
+            swapIndex++;
+        }
+    }
+    tmp = start[swapIndex];
+    start[swapIndex] = *end;
+    *end = tmp;
+    return swapIndex;
+}
 
+void sort_and_write(map<string,vector <Plist> > &plist)
+	{
 		cout << "Sorting..." << endl;
+		#pragma parallel for 
 		map<string,vector <Plist> >::iterator it;
-		for ( it=plists.begin() ; it != plists.end(); it++ )
+		for ( it=plist.begin() ; it != plist.end(); it++ )
 		{
-			for (size_t i = 0 ;i < (*it).second.size();i++ )
+			Sort((*it).second.begin(),(*it).second.end());
+			/*for (size_t i = 0 ;i < (*it).second.size();i++ )
 			{
 				for (size_t j = 0 ;j < (*it).second.size();j++ )
 				{
@@ -114,8 +201,9 @@ public:
 						(*it).second[j] = aux;
 					}
 				}
-			}
+			}*/
 		}
+		
 
 		stringstream words,invlist,invlistfreq;
 		words << this->prefix << ".words";
@@ -125,7 +213,7 @@ public:
 		ofstream invlist_file (invlist.str().c_str());
 		ofstream invlistfreq_file (invlistfreq.str().c_str());
 		cout << "Storing Data..." << endl;
-		for ( it=plists.begin() ; it != plists.end(); it++ )
+		for ( it=plist.begin() ; it != plist.end(); it++ )
 		{
 			words_file << (*it).first << endl;
 			invlist_file << (*it).second.size();
@@ -144,14 +232,14 @@ public:
 		words_file.close();
 		invlist_file.close();
 		invlistfreq_file.close();
-		
+		}
 
-	}
 
 };
 
 int main(int argc, char** argv)
 {
+	omp_set_num_threads(3);
 	const char* invlist = argv[1];
 	const char* prefix = argv[2];
 	InvList *inv = new InvList(string(invlist),string(prefix));
