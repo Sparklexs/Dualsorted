@@ -40,9 +40,16 @@ public:
 		int doc_id = 0;
 		vector <string> files = getData(f);
 		map<string,vector <Plist> > plist = this->plists;
-		
-		for (doc_id = 0 ; doc_id < files.size()-1;doc_id++)
+
+ 		
+ 		#pragma omp parallel for private(id,doc_id) shared(plist)
+  		for (doc_id = 0 ; doc_id < files.size()-1;doc_id++)
 		{
+				id = omp_get_thread_num();
+				#pragma omp critical 
+				{
+	 			cout << "Thread = " << id << "with doc_id = " << doc_id << endl;
+	 			}
 				this->process(files,plist,doc_id);
 		}
 		sort_and_write(plist);
@@ -71,7 +78,8 @@ public:
 
 	map<string,vector <Plist> > process(vector <string> files,map<string,vector <Plist> > &plist,int doc_id)
 	{
-
+	
+		cout << "received doc_id = " << doc_id << endl;
 		string sfilter = " (),:.;\t\"\'!?-_\0\n[]=#{}";
 		string line;
 				int id;
@@ -80,24 +88,26 @@ public:
 					ifstream data (files[doc_id].c_str());
 					if (data.is_open())
 				  	{
+				  	#pragma omp private(data)
 				   	 while (data.good())
 				   	 {
 					   		vector <string> terms;
 				   	   		getline (data,line);
 				   	   		Tokenize(line,terms,sfilter);
 				   	   		size_t i;
-				   	   	    #pragma omp parallel for private(id)
-	               	   	//	#pragma omp parallel shared ( plist )
+				   	   	 //   #pragma omp parallel for private(id)
+	               	   	   #pragma omp private(terms) shared(plist)
+						   {
    					   	   for (i = 0 ; i < terms.size() ;i++)
 					   	   {
 										
-						  				#pragma omp critical
-										{
-											id = omp_get_thread_num();
-						   	 //  			cout << "Thread = " << id <<" with term = " << terms[i] << endl;
+						  				
+										id = omp_get_thread_num();
+						   	 //  		cout << "Thread = " << id <<" with term = " << terms[i] << endl;
+										
 							   	   		if(plist[terms[i]].size() == 0)
 							   	   		{
-							//   	  			cout << "creating a fresh new vector for : " << terms[i] << " in document = " << doc_id << endl;
+							//   	  		cout << "creating a fresh new vector for : " << terms[i] << " in document = " << doc_id << endl;
 						  	   	   			plist[terms[i]].push_back(Plist(1,doc_id));
 						  	   	   		
 							   	   		}
@@ -114,15 +124,16 @@ public:
 							   	//   			cout << "Updating " << terms[i] << " frequency = " << plist[terms[i]][pos-1].frequency << " on doc =" << doc_id << endl;
 							   	   		
 							   	   		}
-							   	   	}
-					   	   	
-					   	   		}
-				   	 }
+							}
+					   	   		
+				   		 }
+				   	}
 				    data.close();
 					} else
 				  	{
 				  		cout << "error opening file" << endl;
 				  	}
+						  	
 		return plist;
 	}
 	
