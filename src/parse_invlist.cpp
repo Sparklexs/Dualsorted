@@ -41,18 +41,11 @@ public:
 		vector <string> files = getData(f);
 		map<string,vector <Plist> > plist = this->plists;
 		
-	//		#pragma omp parallel for private(doc_id,id) shared(plist,files)
-			for (doc_id = 0 ; doc_id < files.size()-1;doc_id++)
-			{
-	//			id = omp_get_thread_num();
-	//			#pragma omp critical
-	//			{
-	//				cout << "executing thread = " << id << " with file = " << doc_id << endl;
-	//			}
-	//			#pragma omp task
+		for (doc_id = 0 ; doc_id < files.size()-1;doc_id++)
+		{
 				this->process(files,plist,doc_id);
-			}
-			sort_and_write(plist);
+		}
+		sort_and_write(plist);
 		
 	}
 
@@ -100,17 +93,17 @@ public:
 										
 						  				#pragma omp critical
 										{
-										id = omp_get_thread_num();
-						   	   			cout << "Thread = " << id <<" with term = " << terms[i] << endl;
+											id = omp_get_thread_num();
+						   	 //  			cout << "Thread = " << id <<" with term = " << terms[i] << endl;
 							   	   		if(plist[terms[i]].size() == 0)
 							   	   		{
-							   	  			cout << "creating a fresh new vector for : " << terms[i] << " in document = " << doc_id << endl;
+							//   	  			cout << "creating a fresh new vector for : " << terms[i] << " in document = " << doc_id << endl;
 						  	   	   			plist[terms[i]].push_back(Plist(1,doc_id));
 						  	   	   		
 							   	   		}
 							   	   		else if (plist[terms[i]][plist[terms[i]].size()-1].doc_id != doc_id)
 							   	   		{
-							   	   			cout << "creating a new vector for : " << terms[i] << " in document = " << doc_id << endl;
+							  // 	   			cout << "creating a new vector for : " << terms[i] << " in document = " << doc_id << endl;
 							   	   			plist[terms[i]].push_back(Plist(1,doc_id));
 							   	   		
 							   	   		} 
@@ -118,7 +111,7 @@ public:
 							   	   		{
 							   	   			size_t pos = plist[terms[i]].size();
 							   	   			plist[terms[i]][pos-1].frequency++;
-							   	   			cout << "Updating " << terms[i] << " frequency = " << plist[terms[i]][pos-1].frequency << " on doc =" << doc_id << endl;
+							   	//   			cout << "Updating " << terms[i] << " frequency = " << plist[terms[i]][pos-1].frequency << " on doc =" << doc_id << endl;
 							   	   		
 							   	   		}
 							   	   	}
