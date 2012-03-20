@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <omp.h>
+#include <time.h>
 
 using namespace std;
 
@@ -42,15 +43,28 @@ public:
 		map<string,vector <Plist> > plist = this->plists;
 
  		
- 		#pragma omp parallel for private(id,doc_id) shared(plist)
+		int count = 0;
+		clock_t start;
+ 		#pragma omp parallel for private(id,doc_id) shared(plist,start)
   		for (doc_id = 0 ; doc_id < files.size()-1;doc_id++)
 		{
 				id = omp_get_thread_num();
-				#pragma omp critical 
-				{
-	 			cout << "Thread = " << id << "with doc_id = " << doc_id << endl;
-	 			}
+//				{
+//	 			cout << "Thread = " << id << "with doc_id = " << doc_id << endl;
+//	 			}
 				this->process(files,plist,doc_id);
+			
+				#pragma omp critical
+				{
+				count++;
+					if (count % 100 == 0)
+					{
+					printf("Time elapsed: %f\n", ((double)clock() - start) / CLOCKS_PER_SEC / 8);
+					start = clock();
+					cout << "clock = " << start << endl;
+					cout << " 100 " << count <<  endl;
+					}
+				}
 		}
 		sort_and_write(plist);
 		
@@ -83,9 +97,14 @@ public:
 		string sfilter = " (),:.;\t\"\'!?-_\0\n[]=#{}";
 		string line;
 				int id;
+		ifstream data;
 				//	if (doc_id % ((files.size()+1)/100) == 0)
-				//		printf("progress %f \n",(double)((double)(doc_id)/(double)files.size())*100);
-					ifstream data (files[doc_id].c_str());
+		
+		//			printf("progress %f \n",(double)((double)(doc_id)/(double)files.size())*100);
+					#pragma omp critical 
+					{
+					 data.open(files[doc_id].c_str());
+					}
 					if (data.is_open())
 				  	{
 				  	#pragma omp private(data,line)
@@ -125,6 +144,7 @@ public:
 				   		 }
 				   	}
 				   }
+				    #pragma omp barrier
 				    data.close();
 					} else
 				  	{
@@ -240,7 +260,8 @@ void sort_and_write(map<string,vector <Plist> > &plist)
 
 int main(int argc, char** argv)
 {
-	omp_set_num_threads(8);
+	int cpus = atoi(argv[3]);
+	omp_set_num_threads(cpus);
 	const char* invlist = argv[1];
 	const char* prefix = argv[2];
 	InvList *inv = new InvList(string(invlist),string(prefix));
