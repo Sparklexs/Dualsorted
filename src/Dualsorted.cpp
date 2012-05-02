@@ -3,7 +3,7 @@
 using namespace cds_static;
 
 
-uint search(const char** a,const char* s,uint n)
+inline uint search(const char** a,const char* s,uint n)
 {
 	uint l = 0;
 	uint r = n-1;
@@ -27,7 +27,7 @@ uint search(const char** a,const char* s,uint n)
 }
 
 
-Dualsorted::Dualsorted(vector<string> vocab, vector< vector<int> > &result, vector<int> &freqs,uint size_terms)
+Dualsorted::Dualsorted(vector<string> vocab, vector< vector<int> > &result, vector<int> &freqs,uint size_terms,size_t *doclens,size_t ndocuments)
 {
     cout << "Amount of terms: " << size_terms << endl;
     this->terms = new const char*[size_terms];
@@ -38,7 +38,9 @@ Dualsorted::Dualsorted(vector<string> vocab, vector< vector<int> > &result, vect
  //   cout << "searching" << endl;
   //  cout << search(this->terms,"wikipedia",size_terms) << endl;
     
-       
+    this->doclens = doclens;
+    this->ndocuments = ndocuments;   
+
 	this->result = result;
 	this->freqs = freqs;
 	this->size_terms = size_terms;
@@ -82,9 +84,10 @@ size_t Dualsorted::getSize()
 	{
 		size_ps += this->ps[i]->getSize();
 	}
-	cout << "partial_sums: " << size_ps << endl;
-	size += size_ps;
+	cout << "partial_sums: " << size_ps/8 << endl;
+	size += size_ps/8;
 	cout << "Total size: " << size << endl;
+	cout << "Total size (MB): " << size/(1024*1024) << endl;
 	return size;
 }
 
@@ -167,6 +170,16 @@ vector < pair<uint,size_t> > Dualsorted::mrqq(string term, size_t k, size_t kp)
 	return this->L->mrqq(start,end,k,kp);
 }
 
+uint Dualsorted::getPostingSize(string term)
+{
+	uint f = this->getTermPosition(term.c_str());
+	if (f == -1)
+		return 1;
+	uint end,start;
+	(f != this->size_terms-1) ? end = this->st->select1(f+2)-1 : end = this->L_size-1;		                                             
+	start = this->st->select1(f+1);
+	return end-start+1;
+}
 
 
 BitSequence *Dualsorted::buildSt()

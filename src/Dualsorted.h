@@ -33,6 +33,7 @@ class Dualsorted
 		// Temporal use for construction
 		vector<int> freqs;
 		vector<vector<int>> result;
+
 	    //	vector<string> terms;
 
 		// Lengths
@@ -41,7 +42,9 @@ class Dualsorted
 		int k;
 
 	public:
-		Dualsorted(vector<string> terms, vector< vector<int> > &result, vector<int> &freqs,uint size_terms);
+		size_t *doclens;
+		size_t ndocuments;
+		Dualsorted(vector<string> terms, vector< vector<int> > &result, vector<int> &freqs,uint size_terms,size_t *doclens,size_t ndocuments);
 		BitSequence *buildSt();
 		Sequence * buildL();
 		void buildSums();
@@ -49,6 +52,7 @@ class Dualsorted
 		// Requested function implementations
 		uint getDocid(string term,uint i);
 		uint getFreq(const char*,int i);
+		uint getPostingSize(string term);
 		vector < pair<uint,size_t> > mrqq(string term, size_t k, size_t kp);
 		vector <uint> range(string t,size_t x,size_t y);
 		void intersect(string t,string k);

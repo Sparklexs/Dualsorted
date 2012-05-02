@@ -1,11 +1,11 @@
 CPP=g++
  
-CPPFLAGS=-g -std=c++0x
+CPPFLAGS=-O9 -std=c++0x
   
-LIBCDS=/home/rkonow/Desktop/Doctorado/Dualsorted/libs/libcds
+LIBCDS=libs/libcds
 LIB=$(LIBCDS)/lib/libcds.a
 INCLUDES=-I$(LIBCDS)/includes/
-SRC=/home/rkonow/Desktop/Doctorado/Dualsorted/src/
+SRC=src/
 all: 
 	    $(CPP) $(CPPFLAGS) $(INCLUDES) -o test $(SRC)main.cpp $(LIB)		 
 clean:
