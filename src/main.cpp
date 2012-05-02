@@ -30,6 +30,10 @@ public:
 };
 
 
+inline void executeAND(Dualsorted* ds, string ** terms, uint *qsizes,size_t total_queries)
+{
+
+}
 
 
 inline void executeOR(Dualsorted* ds, string ** terms, uint *qsizes,size_t total_queries)
@@ -67,6 +71,10 @@ inline void executeOR(Dualsorted* ds, string ** terms, uint *qsizes,size_t total
 	cout << "END RESULT!" << endl;
 	cout << ds->getSize() << endl;
 }
+inline void executeANDPersin(Dualsorted* ds,string ** terms,uint *qsizes,uint top_k,size_t total_queries)
+{
+
+}
 
 inline void executePersin(Dualsorted* ds,string ** terms,uint *qsizes,uint top_k,size_t total_queries)
 {
@@ -85,7 +93,6 @@ inline void executePersin(Dualsorted* ds,string ** terms,uint *qsizes,uint top_k
 		persin = priority_queue<Accumulator*,vector<Accumulator*>,AccComparison>();
 		Accumulator **acc = new Accumulator*[ds->ndocuments];
 		ex_total = total;
-	//	cout << "Creating accumulators"  << endl;
 		for (int x = 0 ; x < documents;x++)
 		{
 				acc[x] = new Accumulator();
@@ -93,41 +100,36 @@ inline void executePersin(Dualsorted* ds,string ** terms,uint *qsizes,uint top_k
 				acc[x]->doc_id = i;
 
 		}
-	//	cout << "Done!" << endl;
 		start = clock();
 		for (uint j = 0 ; j < qsizes[i] ;j++)
-		{
-	//		cout << "executing range queries" << endl;
-	 	  	vector <uint> results = ds->range(terms[i][j],0,2);	
-	 //   	cout << "done!" << endl;
-	 //   	cout << "obtaining posting size for term:" << terms[i][j] << endl;
+		{	 	  	vector <uint> results = ds->range(terms[i][j],0,2);	
+
 	    	uint posting_size = ds->getPostingSize(terms[i][j].c_str());
-	//    	cout << "posting size = " << posting_size << endl;
-	  //  	cout << "done!" << endl;
-	//    	cout << "adding results " << endl;
+
 	        for (uint k = 0 ; k < results.size();k++)
 		    {	
-		  //  	cout << "adding doc_id = " << test[k] << endl;
-				double wxt = ds->getFreq(terms[i][j].c_str(),k)*msb(ds->ndocuments/posting_size);
-		    	acc[results[k]]->impact += wxt;
-		    	acc[results[k]]->doc_id = results[k];
-				//persin.push(acc[test[k]]);
-
+		    	if (results[k] < documents)
+		    	{
+			    	uint freq = ds->getFreq(terms[i][j].c_str(),k);
+			    	double idf = msb((ds->doclens[results[k]]-posting_size+0.5)/(posting_size+0.5));
+					double score = (idf*(freq)*(2.2))/(freq+1.2*(1-0.75));
+			    	acc[results[k]]->impact += score;
+			    	acc[results[k]]->doc_id = results[k];
+			    }
+			
 	        }
-	     //   cout << "done!" << endl;
+
 	        results.clear();
 
 	    }
 	    finish = clock();
 	    time = (double(finish)-double(start))/CLOCKS_PER_SEC;
 		total += time;
-	//	cout << " Divding by doclens..." << endl;
 	    for (size_t j = 0 ; j< documents;j++)
 		{
 			if (acc[j]->impact != 0.0)
 			{
 				start = clock();
-				acc[j]->impact /= ds->doclens[j];
 				persin.push(acc[i]);
 			    finish = clock();
 	    	    time = (double(finish)-double(start))/CLOCKS_PER_SEC;
@@ -135,16 +137,13 @@ inline void executePersin(Dualsorted* ds,string ** terms,uint *qsizes,uint top_k
 			}
 		}
 
-	//	size_t *result = new size_t[top_k];
+
 		start = clock();
 		for (int i = 0 ;i<top_k;i++)
 		{
-			//cout << "persin.size = " << persin.size() << endl;
+
 			if (persin.size() == 0)
 				break;
-				//persin.top();
-			//cout << "adding document = " << r->doc_id << endl;
-		//	result[i] = r->doc_id;
 			if (i < persin.size()-1)
 			{
 				persin.pop();
@@ -192,15 +191,10 @@ void executeQueries(Dualsorted* ds,const char* queries,int query_type)
 			transform(str.begin(), str.end(),str.begin(), ::tolower);
    			Tokenize(str,q,filter);
    			
-  	//			cout << "adding query " << i << endl;
-   				qsize[i] = q.size();
-   				qterms[i] = new string[q.size()];
-   				for (int j = 0 ; j < q.size();j++)
-   				{
-   					qterms[i][j] = q[j];
-   		//			cout << qterms[i][j] << endl;
-   				}
-
+			qsize[i] = q.size();
+   			qterms[i] = new string[q.size()];
+   			for (int j = 0 ; j < q.size();j++)
+   				qterms[i][j] = q[j];
    		}
    		i++;
    	}
@@ -209,8 +203,10 @@ void executeQueries(Dualsorted* ds,const char* queries,int query_type)
    		executeOR(ds,qterms,qsize,total_queries);
    	if (query_type == 0)
    		executePersin(ds,qterms,qsize,top_k,total_queries);
-   	
-   	
+   	if (query_type == 2)
+   		executeAND(ds,qterms,qsize,total_queries);
+   	if (query_type == 4)
+   		executeANDPersin(ds,qterms,qsize,top_k,total_queries);   	
 }
 
 int main(int argc, char** argv)
@@ -306,8 +302,6 @@ int main(int argc, char** argv)
 	words.pop_back();
 	result.pop_back();
 	
-// End of Filtering
-
 	Dualsorted *ds = new Dualsorted(words, result, freqs, words.size(),doclens,ndocuments);
 	executeQueries(ds,queries,0);
 	executeQueries(ds,queries,1);
