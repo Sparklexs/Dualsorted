@@ -139,7 +139,7 @@ inline void executePersin(Dualsorted* ds,string ** terms,uint *qsizes,uint top_k
 
 
 		start = clock();
-		for (int i = 0 ;i<top_k;i++)
+		for (int x = 0 ;x<top_k;x++)
 		{
 
 			if (persin.size() == 0)
@@ -302,7 +302,7 @@ int main(int argc, char** argv)
 	words.pop_back();
 	result.pop_back();
 	
-	Dualsorted *ds = new Dualsorted(words, result, freqs, words.size(),doclens,ndocuments);
+ 	Dualsorted *ds = new Dualsorted(words, result, freqs, words.size(),doclens,ndocuments);
 	executeQueries(ds,queries,0);
 	executeQueries(ds,queries,1);
 }
