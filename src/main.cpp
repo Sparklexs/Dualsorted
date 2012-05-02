@@ -32,6 +32,34 @@ public:
 
 inline void executeAND(Dualsorted* ds, string ** terms, uint *qsizes,size_t total_queries)
 {
+	cout << "----- executing AND ---- " << endl;
+	cout << "----- Amount of queries " << total_queries << endl;
+    google::sparse_hash_map<uint, uint>  documents;
+	clock_t start,finish;
+	double time;
+	double total = 0;
+    start = clock();
+    size_t total_results = 0;
+    for (uint i = 0 ; i < total_queries ; i+=2)
+	{
+		if (i%100 ==0)
+		{
+  			finish = clock();
+			time = (double(finish)-double(start))/CLOCKS_PER_SEC;
+			total += time;
+			cout << "query " << i << " time = " << time << endl;
+  		    start = clock();
+		}
+		for (uint j = 1 ; j < qsizes[i]-1 ; j++)
+		{
+    		ds->intersect(terms[i][j],terms[i][j-1]);	
+    	}
+    }
+  
+    cout << "total documents = " << total_results << endl;  
+    cout << "OR time = " << total << endl;
+	cout << "END RESULT!" << endl;
+	cout << ds->getSize() << endl;
 
 }
 
@@ -102,8 +130,9 @@ inline void executePersin(Dualsorted* ds,string ** terms,uint *qsizes,uint top_k
 		}
 		start = clock();
 		for (uint j = 0 ; j < qsizes[i] ;j++)
-		{	 	  	vector <uint> results = ds->range(terms[i][j],0,2);	
+		{	 	  	
 
+			vector <uint> results = ds->range(terms[i][j],0,3);	
 	    	uint posting_size = ds->getPostingSize(terms[i][j].c_str());
 
 	        for (uint k = 0 ; k < results.size();k++)
@@ -205,7 +234,7 @@ void executeQueries(Dualsorted* ds,const char* queries,int query_type)
    		executePersin(ds,qterms,qsize,top_k,total_queries);
    	if (query_type == 2)
    		executeAND(ds,qterms,qsize,total_queries);
-   	if (query_type == 4)
+   	if (query_type == 3)
    		executeANDPersin(ds,qterms,qsize,top_k,total_queries);   	
 }
 
@@ -213,7 +242,7 @@ int main(int argc, char** argv)
 {
 	if (argc < 2)
 	{
-		cout  << "usage: ./dualsorted <inverted list> <inverted list w/freqs > <vocabulary> <queries>" << endl;
+		cout  << "usage: ./dualsorted <inverted list> <inverted list w/freqs > <vocabulary> <doclens> <queries>" << endl;
 		return 0;
 	}
 	const char* invlist = argv[1];
@@ -304,5 +333,5 @@ int main(int argc, char** argv)
 	
  	Dualsorted *ds = new Dualsorted(words, result, freqs, words.size(),doclens,ndocuments);
 	executeQueries(ds,queries,0);
-	executeQueries(ds,queries,1);
+//	executeQueries(ds,queries,1);
 }

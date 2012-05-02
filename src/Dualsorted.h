@@ -28,8 +28,8 @@ class Dualsorted
 		WaveletTreeNoptrs *L;
 		BitSequence *st;
 		CompressedPsums ** ps;
-        //google::sparse_hash_map<const char*, uint, hash<const char*>, eqstr> terms;
-        const char ** terms;
+        google::sparse_hash_map<string, uint> terms;
+        //const char ** terms;
 		// Temporal use for construction
 		vector<int> freqs;
 		vector<vector<int>> result;
