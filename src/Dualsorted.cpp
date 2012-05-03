@@ -92,6 +92,19 @@ size_t Dualsorted::getSize()
 	return size;
 }
 
+vector <uint> Dualsorted::getRange(string term,uint i)
+{
+	uint f = this->getTermPosition(term.c_str());
+	uint end,start;
+	(f != this->size_terms-1) ? end = this->st->select1(f+2)-1: end = this->L_size-1;
+	start = this->st->select1(f+1);
+	if (end-start < 2)
+		return vector<uint>();
+	if (start + i < end-1)
+	return this->L->range_report_aux(start,start+i);
+	else
+	return this->L->range_report_aux(start,end-1);
+}
 uint Dualsorted::getDocid(string term,uint i)
 {
 	uint f = this->getTermPosition(term.c_str());
@@ -111,12 +124,22 @@ uint Dualsorted::getPosTerm(string t,uint d)
 uint Dualsorted::getFreq(const char* term,int i)
 {
 	uint j = this->getTermPosition(term);
+	if (j == 0)
+	{
+		return 0;
+	}
 //	cout << "term = " << term << endl;
 //	cout << "i = " << i << endl;
-	if (j != -1)
+	if (j != -1 || j != 0)
+	{
+		if (j > 0) 
 		return this->ps[j-1]->decode(i);
+	}
 	else
+	{
 		return 0;
+	}
+	return 0;
 }
 
 uint Dualsorted::getTermPosition(const char *t)
@@ -213,7 +236,7 @@ BitSequence *Dualsorted::buildSt()
 		m2a = m2a + result[i].size();		
 	}
 
-	BitSequenceRG *bsrg = new BitSequenceRG(*bs,20);
+	BitSequenceRG *bsrg = new BitSequenceRG(*bs,2);
 	this->st = bsrg;
 
 	return this->st;
@@ -268,8 +291,8 @@ Sequence * Dualsorted::buildL()
 	Array *A = new Array(sequence,this->L_size);
 	MapperNone * map = new MapperNone();
     
-   	//BitSequenceBuilder * bsb = new BitSequenceBuilderRRR(128);
-   	BitSequenceBuilder * bsb = new BitSequenceBuilderRG(30);
+//   	BitSequenceBuilder * bsb = new BitSequenceBuilderRRR(50);
+   	BitSequenceBuilder * bsb = new BitSequenceBuilderRG(2);
    	WaveletTreeNoptrs* seq = new WaveletTreeNoptrs(*A, bsb, map);		
 
 	this->L = seq;

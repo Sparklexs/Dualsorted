@@ -131,13 +131,21 @@ inline void executePersin(Dualsorted* ds,string ** terms,uint *qsizes,uint top_k
 		start = clock();
 		for (uint j = 0 ; j < qsizes[i] ;j++)
 		{	 	  	
+		uint posting_size = ds->getPostingSize(terms[i][j].c_str());
+		if (posting_size < 2) continue;
+		vector <uint> results = ds->getRange(terms[i][j],20);	
+//		cout << "results.size() = " << results.size() << endl;
+		if (posting_size < results.size())
+			break;
+		if (results.size() == 0)
+			continue;
 
-			vector <uint> results = ds->range(terms[i][j],0,3);	
-	    	uint posting_size = ds->getPostingSize(terms[i][j].c_str());
-
-	        for (uint k = 0 ; k < results.size();k++)
-		    {	
-		    	if (results[k] < documents)
+	        for (uint k = 0 ; k < results.size()-2;k++)
+		    {
+//			cout << "posting_size = " << posting_size << endl;
+//			cout << "k = " << k << " ->  " << results[k] << endl;
+//			cout << "term = " << terms[i][j] << endl;		
+		    	if (k < posting_size-1)
 		    	{
 			    	uint freq = ds->getFreq(terms[i][j].c_str(),k);
 			    	double idf = msb((ds->doclens[results[k]]-posting_size+0.5)/(posting_size+0.5));
@@ -185,9 +193,9 @@ inline void executePersin(Dualsorted* ds,string ** terms,uint *qsizes,uint top_k
 		finish = clock();
 		time = (double(finish)-double(start))/CLOCKS_PER_SEC;
 		total += time;
-		if (i % 100 == 0)
+		if (i % 10 == 0)
 		{
-			cout << "query " << i << "time = " << (double)(total/100.0000) << endl;
+			cout << "query " << i << "time = " << (double)(total/10.0000) << endl;
 		}
 		delete[] acc;
 	}

@@ -178,13 +178,22 @@ class CompressedPsums
 	{
 
 //		cout << " ------- " << endl;
-//		cout << "pos recibido = " << pos << endl;
+	//	cout << "pos recibido = " << pos << endl;
 		int new_pos;
-
+		if (pos >= n-1)
+			return 0;
+		
 		if (this->duplicate[pos] != 0)
 		{
-			pos = pos-this->duplicate[pos];
-//			cout << " pos - duplicate = " << pos << endl;
+			if (duplicate[pos] <= pos)
+			{
+				pos = pos-this->duplicate[pos];
+	//			cout << " pos - duplicate = " << pos << endl;
+			}
+			else
+			{
+				return 0;
+			}
 		}
 
 		if (pos == 0)
@@ -193,11 +202,14 @@ class CompressedPsums
 		}
 		else
 		{
-//			cout << "entre con pos = " << pos << endl;
+	//		cout << "entre con pos = " << pos << endl;
 //			cout << "this->k = " << this->k << endl;
 			new_pos = (pos/this->k);
 		}
-//		cout << "new_pos (pos/k) = " << new_pos << endl;
+	
+	//	cout << "new_pos (pos/k) = " << new_pos << endl;
+		if (this->s[new_pos] == NULL)
+			return 0;
 		uint real = this->s[new_pos]->real;
 //		cout << "numero real = " << real << endl;
 		uint real_pos = this->s[new_pos]->pos;
