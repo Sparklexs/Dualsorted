@@ -29,7 +29,7 @@ inline uint search(const char** a,const char* s,uint n)
 
 Dualsorted::Dualsorted(vector<string> vocab, vector< vector<int> > &result, vector<int> &freqs,uint size_terms,size_t *doclens,size_t ndocuments)
 {
-    cout << "Amount of terms: " << size_terms << endl;
+   // cout << "Amount of terms: " << size_terms << endl;
 
 
     for (uint i =0 ; i < vocab.size();i++)
@@ -49,15 +49,15 @@ Dualsorted::Dualsorted(vector<string> vocab, vector< vector<int> > &result, vect
 	this->k = 10;
 	
 
-	cout << "Building St...";
+//	cout << "Building St...";
 	this->buildSt();
-	cout << "Done!" << endl;
-	cout << "Building PartialSums...";
+//	cout << "Done!" << endl;
+//	cout << "Building PartialSums...";
 	this->buildSums();
-	cout << "Done!" << endl;
-	cout << "Building L..."; 
+//	cout << "Done!" << endl;
+//	cout << "Building L..."; 
 	this->buildL();	
-	cout << "Done!" << endl;
+//	cout << "Done!" << endl;
 	
 	this->result.clear();
 	this->freqs.clear();
@@ -75,8 +75,8 @@ size_t Dualsorted::getSize()
     double len_tt = 0;
     double len_rt = 0;
     
-	cout << "L size: " << this->L->getSize() << endl;
-	cout << "st size: " << this->st->getSize() << endl;
+//	cout << "L size: " << this->L->getSize() << endl;
+//	cout << "st size: " << this->st->getSize() << endl;
 	size += this->L->getSize();
 	size += this->st->getSize();
 
@@ -85,10 +85,10 @@ size_t Dualsorted::getSize()
 	{
 		size_ps += this->ps[i]->getSize();
 	}
-	cout << "partial_sums: " << size_ps/8 << endl;
+//	cout << "partial_sums: " << size_ps/8 << endl;
 	size += size_ps/8;
-	cout << "Total size: " << size << endl;
-	cout << "Total size (MB): " << size/(1024*1024) << endl;
+//	cout << "Total size: " << size << endl;
+//	cout << "Total size (MB): " << size/(1024*1024) << endl;
 	return size;
 }
 

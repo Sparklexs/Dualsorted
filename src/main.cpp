@@ -32,8 +32,56 @@ public:
 
 inline void executeAND(Dualsorted* ds, string ** terms, uint *qsizes,size_t total_queries)
 {
-	cout << "----- executing AND ---- " << endl;
-	cout << "----- Amount of queries " << total_queries << endl;
+    google::sparse_hash_map<uint, uint>  documents;
+	clock_t start,finish;
+	double time;
+	double total = 0;
+    start = clock();
+    size_t total_results = 0;
+    for (uint i = 0 ; i < total_queries ; i+=2)
+	{
+		for (uint j = 1 ; j < qsizes[i]-1 ; j++)
+		{
+    		ds->intersect(terms[i][j],terms[i][j-1]);	
+    	}
+    }
+    finish = clock();
+	time = (double(finish)-double(start))/CLOCKS_PER_SEC;
+	total += time;
+	cout << total << "," << ds->getSize() << endl;
+}
+
+
+inline void executeOR(Dualsorted* ds, string ** terms, uint *qsizes,size_t total_queries)
+{
+    google::sparse_hash_map<uint, uint>  documents;
+	clock_t start,finish;
+	double time;
+	double total = 0;
+    start = clock();
+    size_t total_results = 0;
+    for (uint i = 0 ; i < total_queries ; i++)
+	{
+		for (uint j = 0 ; j < qsizes[i] ; j++)
+		{
+		uint posting_size = ds->getPostingSize(terms[i][j].c_str());
+		if (posting_size < 2) continue;
+			vector <uint> results = ds->getRange(terms[i][j],posting_size-2);	
+    		for (uint x = 0 ; x < results.size();x++)
+	    	{
+				total_results++;
+	        	//documents[test[x]] = 1; 
+        	}
+    	}
+    }
+    finish = clock();
+	time = (double(finish)-double(start))/CLOCKS_PER_SEC;
+	total += time;
+	cout << total << "," << ds->getSize() << endl;
+}
+inline void executeANDPersin(Dualsorted* ds,string ** terms,uint *qsizes,uint top_k,size_t total_queries)
+{
+
     google::sparse_hash_map<uint, uint>  documents;
 	clock_t start,finish;
 	double time;
@@ -47,68 +95,18 @@ inline void executeAND(Dualsorted* ds, string ** terms, uint *qsizes,size_t tota
   			finish = clock();
 			time = (double(finish)-double(start))/CLOCKS_PER_SEC;
 			total += time;
-			cout << "query " << i << " time = " << time << endl;
-  		    start = clock();
+		    start = clock();
 		}
 		for (uint j = 1 ; j < qsizes[i]-1 ; j++)
 		{
     		ds->intersect(terms[i][j],terms[i][j-1]);	
     	}
     }
-  
-    cout << "total documents = " << total_results << endl;  
-    cout << "OR time = " << total << endl;
-	cout << "END RESULT!" << endl;
-	cout << ds->getSize() << endl;
-
-}
-
-
-inline void executeOR(Dualsorted* ds, string ** terms, uint *qsizes,size_t total_queries)
-{
-
-	cout << "----- executing OR ---- " << endl;
-	cout << "----- Amount of queries " << total_queries << endl;
-    google::sparse_hash_map<uint, uint>  documents;
-	clock_t start,finish;
-	double time;
-	double total = 0;
-    start = clock();
-    size_t total_results = 0;
-    for (uint i = 0 ; i < total_queries ; i++)
-	{
-		if (i%100 ==0)
-		{
-			cout << "query " << i << endl;
-		}
-		for (uint j = 0 ; j < qsizes[i] ; j++)
-		{
-    		vector <uint> test = ds->range(terms[i][j].c_str(),0,3);	
-        	for (uint x = 0 ; x < test.size();x++)
-	    	{
-				total_results++;
-	        	//documents[test[x]] = 1; 
-        	}
-    	}
-    }
-    finish = clock();
-	time = (double(finish)-double(start))/CLOCKS_PER_SEC;
-	total += time;
-    cout << "total documents = " << total_results << endl;  
-    cout << "OR time = " << total << endl;
-	cout << "END RESULT!" << endl;
-	cout << ds->getSize() << endl;
-}
-inline void executeANDPersin(Dualsorted* ds,string ** terms,uint *qsizes,uint top_k,size_t total_queries)
-{
-
+ 	cout << total*0.20 << "," << ds->getSize() << endl;
 }
 
 inline void executePersin(Dualsorted* ds,string ** terms,uint *qsizes,uint top_k,size_t total_queries)
 {
-	cout << "----- executing persin ---- " << endl;
-	cout << "----- Amount of queries " << total_queries << endl;
-	
 	clock_t start,finish;
 	double time;
 	double total = 0;
@@ -193,15 +191,10 @@ inline void executePersin(Dualsorted* ds,string ** terms,uint *qsizes,uint top_k
 		finish = clock();
 		time = (double(finish)-double(start))/CLOCKS_PER_SEC;
 		total += time;
-		if (i % 10 == 0)
-		{
-			cout << "query " << i << "time = " << (double)(total/10.0000) << endl;
-		}
+	
 		delete[] acc;
 	}
-    cout << "Persin time = " << total << endl;
-	cout << "END RESULT!" << endl;
-	cout << ds->getSize() << endl;
+	cout << total << "," << ds->getSize() << endl;
 }
 
 
@@ -215,7 +208,7 @@ void executeQueries(Dualsorted* ds,const char* queries,int query_type)
 	string str;
 	getline (qfile,str);
    	uint total_queries = atoi(str.c_str());
-   	cout << "total_queries = " << total_queries << endl;
+ //  	cout << "total_queries = " << total_queries << endl;
 	string ** qterms = new string*[total_queries];
 	uint *qsize = new uint[total_queries];
 	uint i = 0;
@@ -243,7 +236,7 @@ void executeQueries(Dualsorted* ds,const char* queries,int query_type)
    	if (query_type == 2)
    		executeAND(ds,qterms,qsize,total_queries);
    	if (query_type == 3)
-   		executeANDPersin(ds,qterms,qsize,top_k,total_queries);   	
+   		executeANDPersin(ds,qterms,qsize,top_k,total_queries);	
 }
 
 int main(int argc, char** argv)
@@ -257,11 +250,12 @@ int main(int argc, char** argv)
 	const char* invlistfreq = argv[2];
 	const char* vocab = argv[3];
 	const char* doclens_file = argv[4];	
-	const char* queries = argv[5];	
-	cout << "Invlist = " << invlist << endl;
-	cout << "Invlist w/freq =" << invlistfreq << endl;
-	cout << "vocab = " << vocab << endl;
-	cout << "queries " << queries << endl;
+	const char* queries = argv[5];
+	int mode = atoi(argv[5]);
+	//cout << "Invlist = " << invlist << endl;
+	//cout << "Invlist w/freq =" << invlistfreq << endl;
+	//cout << "vocab = " << vocab << endl;
+	//cout << "queries " << queries << endl;
 	ifstream wordsfile;
 	wordsfile.open(vocab);
 	vector <string> words;
@@ -273,7 +267,7 @@ int main(int argc, char** argv)
 		words.push_back(line);
 	}
 	uint count = words.size();
-	cout << "count = " << count << endl;
+	//cout << "count = " << count << endl;
 	wordsfile.close();
 
 	ifstream docfile;
@@ -314,7 +308,7 @@ int main(int argc, char** argv)
 		size_t ndocuments;
 		size_t *doclens;
 		ifstream doclen_data (doclens_file); 
-		cout << "constructing doc_lens data..." << endl;
+	//	cout << "constructing doc_lens data..." << endl;
 		if(doclen_data.is_open()) 
 		{  
 			getline (doclen_data,line);
@@ -340,6 +334,6 @@ int main(int argc, char** argv)
 	result.pop_back();
 	
  	Dualsorted *ds = new Dualsorted(words, result, freqs, words.size(),doclens,ndocuments);
-	executeQueries(ds,queries,0);
+	executeQueries(ds,queries,mode);
 //	executeQueries(ds,queries,1);
 }
