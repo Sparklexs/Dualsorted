@@ -119,7 +119,7 @@ inline void executePersin(Dualsorted* ds,string ** terms,uint *qsizes,uint top_k
 		persin = priority_queue<Accumulator*,vector<Accumulator*>,AccComparison>();
 		Accumulator **acc = new Accumulator*[ds->ndocuments];
 		ex_total = total;
-		for (int x = 0 ; x < documents;x++)
+		for (int x = 0 ; x < top_k+1;x++)
 		{
 				acc[x] = new Accumulator();
 				acc[x]->impact = 0;
@@ -127,7 +127,7 @@ inline void executePersin(Dualsorted* ds,string ** terms,uint *qsizes,uint top_k
 
 		}
 		start = clock();
-		for (uint j = 0 ; j < qsizes[i] ;j++)
+		for (uint j = 0 ; j < qsizes[i]-1 ;j++)
 		{	 	  	
 		uint posting_size = ds->getPostingSize(terms[i][j].c_str());
 		if (posting_size < 2) continue;
@@ -148,8 +148,8 @@ inline void executePersin(Dualsorted* ds,string ** terms,uint *qsizes,uint top_k
 			    	uint freq = ds->getFreq(terms[i][j].c_str(),k);
 			    	double idf = msb((ds->doclens[results[k]]-posting_size+0.5)/(posting_size+0.5));
 					double score = (idf*(freq)*(2.2))/(freq+1.2*(1-0.75));
-			    	acc[results[k]]->impact += score;
-			    	acc[results[k]]->doc_id = results[k];
+			    	acc[((results[k])%top_k)]->impact += score;
+			    	acc[((results[k]%top_k))]->doc_id = results[k];
 			    }
 			
 	        }
@@ -160,15 +160,17 @@ inline void executePersin(Dualsorted* ds,string ** terms,uint *qsizes,uint top_k
 	    finish = clock();
 	    time = (double(finish)-double(start))/CLOCKS_PER_SEC;
 		total += time;
-	    for (size_t j = 0 ; j< documents;j++)
+	    for (size_t j = 0 ; j< top_k;j++)
 		{
+			if (acc[j] != NULL) {
 			if (acc[j]->impact != 0.0)
 			{
 				start = clock();
-				persin.push(acc[i]);
+				persin.push(acc[j]);
 			    finish = clock();
 	    	    time = (double(finish)-double(start))/CLOCKS_PER_SEC;
 				total += time;
+			}
 			}
 		}
 
@@ -228,15 +230,25 @@ void executeQueries(Dualsorted* ds,const char* queries,int query_type)
    		}
    		i++;
    	}
+	/*for (int i = 0 ; i < total_queries;i++)
+	{
+		cout << "query " << i;
+		for (int j = 0;j<qsize[i];j++)
+		{
+			cout << qterms[i][j] ;
+			cout << " " << qterms[i][j].c_str() << " ";
+		}
+		cout << endl;
+	}*/
    	
    	if (query_type == 1)
-   		executeOR(ds,qterms,qsize,total_queries);
+   		executeOR(ds,qterms,qsize,total_queries-10);
    	if (query_type == 0)
-   		executePersin(ds,qterms,qsize,top_k,total_queries);
+   		executePersin(ds,qterms,qsize,top_k,total_queries-10);
    	if (query_type == 2)
-   		executeAND(ds,qterms,qsize,total_queries);
+   		executeAND(ds,qterms,qsize,total_queries-10);
    	if (query_type == 3)
-   		executeANDPersin(ds,qterms,qsize,top_k,total_queries);	
+   		executeANDPersin(ds,qterms,qsize,top_k,total_queries-10);	
 }
 
 int main(int argc, char** argv)
