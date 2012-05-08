@@ -1,5 +1,5 @@
 CPP=g++
- 
+#CPPFLAGS=-g -std=c++0x 
 CPPFLAGS=-O9 -std=c++0x
   
 LIBCDS=libs/libcds
