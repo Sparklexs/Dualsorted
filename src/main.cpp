@@ -32,18 +32,16 @@ public:
 
 inline void executeAND(Dualsorted* ds, string ** terms, uint *qsizes,size_t total_queries)
 {
+	//cout << "wazaaaaa!!! " << endl;
     google::sparse_hash_map<uint, uint>  documents;
 	clock_t start,finish;
 	double time;
 	double total = 0;
     start = clock();
     size_t total_results = 0;
-    for (uint i = 0 ; i < total_queries ; i+=2)
+    for (uint i = 0 ; i < total_queries ; i++)
 	{
-		for (uint j = 1 ; j < qsizes[i]-1 ; j++)
-		{
-    		ds->intersect(terms[i][j],terms[i][j-1]);	
-    	}
+    	ds->intersect(terms[i],qsizes[i]);	
     }
     finish = clock();
 	time = (double(finish)-double(start))/CLOCKS_PER_SEC;
@@ -81,7 +79,7 @@ inline void executeOR(Dualsorted* ds, string ** terms, uint *qsizes,size_t total
 }
 inline void executeANDPersin(Dualsorted* ds,string ** terms,uint *qsizes,uint top_k,size_t total_queries)
 {
-
+}/*
     google::sparse_hash_map<uint, uint>  documents;
 	clock_t start,finish;
 	double time;
@@ -103,7 +101,7 @@ inline void executeANDPersin(Dualsorted* ds,string ** terms,uint *qsizes,uint to
     	}
     }
  	cout << total*0.20 << "," << ds->getSize() << endl;
-}
+}/**/
 
 inline void executePersin(Dualsorted* ds,string ** terms,uint *qsizes,uint top_k,size_t total_queries)
 {
@@ -210,7 +208,7 @@ void executeQueries(Dualsorted* ds,const char* queries,int query_type)
 	string str;
 	getline (qfile,str);
    	uint total_queries = atoi(str.c_str());
- //  	cout << "total_queries = " << total_queries << endl;
+   	cout << "total_queries = " << total_queries << endl;
 	string ** qterms = new string*[total_queries];
 	uint *qsize = new uint[total_queries];
 	uint i = 0;
@@ -242,13 +240,13 @@ void executeQueries(Dualsorted* ds,const char* queries,int query_type)
 	}*/
    	
    	if (query_type == 1)
-   		executeOR(ds,qterms,qsize,total_queries-10);
+   		executeOR(ds,qterms,qsize,total_queries);
    	if (query_type == 0)
-   		executePersin(ds,qterms,qsize,top_k,total_queries-10);
+   		executePersin(ds,qterms,qsize,top_k,total_queries);
    	if (query_type == 2)
-   		executeAND(ds,qterms,qsize,total_queries-10);
+   		executeAND(ds,qterms,qsize,total_queries);
    	if (query_type == 3)
-   		executeANDPersin(ds,qterms,qsize,top_k,total_queries-10);	
+   		executeANDPersin(ds,qterms,qsize,top_k,total_queries);	
 }
 
 int main(int argc, char** argv)
@@ -263,7 +261,7 @@ int main(int argc, char** argv)
 	const char* vocab = argv[3];
 	const char* doclens_file = argv[4];	
 	const char* queries = argv[5];
-	int mode = atoi(argv[5]);
+	int mode = atoi(argv[6]);
 	//cout << "Invlist = " << invlist << endl;
 	//cout << "Invlist w/freq =" << invlistfreq << endl;
 	//cout << "vocab = " << vocab << endl;

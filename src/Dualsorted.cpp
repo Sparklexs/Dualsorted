@@ -166,38 +166,32 @@ vector <uint> Dualsorted::range(string term, size_t x, size_t y)
 	return this->L->range_report_aux(start+x,start+y);
 }
 
-inline void Dualsorted::intersect(string term, string term2)
+inline void Dualsorted::intersect(string *terms,uint qsizes)
 {
-	uint f = this->getTermPosition(term.c_str());
-	uint f2 = this->getTermPosition(term2.c_str());
-	
-	if (f == -1 || f == 0 || f > 4294967290 || f2 == -1 || f2 == 0 || f2 > 4294967290)
+	//cout << "BLABLA" << endl;
+	size_t *start = new size_t[qsizes];
+	size_t *end = new size_t[qsizes];
+	for (uint i  = 0 ; i < qsizes;i++)
+	{
+		uint f = this->getTermPosition(terms[i].c_str());
+		if (f == 0 )
 		return;
-	//cout << "Received t1  = " << term << " and t2 = " << term2 << endl;
-	//cout << " pos t1 =  " << f << " --- pos t2 = " << f2 << endl;
-	uint end1 = -1;
-	uint end2 = -1;
+	/*	cout << "term = " << terms[i] << endl;
+		cout << "pos = " << f << endl;*/
+		
+		start[i] = this->st->select1(f+1);
+		if (f != this->size_terms-1)
+			end[i] = this->st->select1(f+2)-1;
+		else
+			end[i] = this->L_size-1;		
 
-	uint start1 = this->st->select1(f+1);
-	uint start2 = this->st->select1(f2+1);
-	//cout << "start1 = " << start1 << endl;
-	//cout << "start2 = " << start1 << endl;
-	
-	if (f != this->size_terms-1)
-		end1 = this->st->select1(f+2)-1;
-	else
-		 end1 = this->L_size-1;		
-
-	//cout << "end1 = " << end1 << endl;
-	
-	if (f2 != this->size_terms-1)
-		end2 = this->st->select1(f2+2)-1;
-	else
-		 end2 = this->L_size-1;		
-	//cout << "end2 = " << end2 << endl;
-	
-
-	this->L->range_intersect_aux(start1,end1,start2,end2);
+	/*	cout << "start[" << i << "] = " << start[i] << endl;
+		cout << "end[" << i << "] = " << end[i] << endl;*/
+	}
+	//size_t x_start,size_t x_end,size_t y_start, size_t y_end)
+	//this->L->range_report_aux(start[0],end[0]);
+	//this->L->range_intersect_aux(start[0],end[0],start[1],end[1]);
+	this->L->n_range_intersect_aux(start,end,qsizes);
 }
 vector < pair<uint,size_t> > Dualsorted::mrqq(string term, size_t k, size_t kp)
 {

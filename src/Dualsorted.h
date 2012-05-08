@@ -55,7 +55,7 @@ class Dualsorted
 		uint getPostingSize(string term);
 		vector < pair<uint,size_t> > mrqq(string term, size_t k, size_t kp);
 		vector <uint> range(string t,size_t x,size_t y);
-		void intersect(string t,string k);
+		void intersect(string *terms,uint qsizes);
 		vector <uint> getRange(string term,uint i);
 		
 		// others
