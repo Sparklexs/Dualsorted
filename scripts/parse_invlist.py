@@ -54,7 +54,7 @@ if len(sys.argv)==1:
 
 # Read options passed through the command line
 try:
-    optlist, args = getopt.getopt(sys.argv[1:],'hl:w:i:')
+  optlist, args = getopt.getopt(sys.argv[1:],'hl:w:i:s')
 except getopt.GetoptError, err:
     print(str(err))
     usage()
@@ -64,16 +64,24 @@ if ('h','') in optlist:
     usage()
     sys.exit(0)
 
-# Assign names to the three files
+sort = ""
+print optlist
+if ('-s','') in optlist:
+  sort = "true"
+
+# Assign names to the four files
 files_list_name = ""
 words_list_name = ""
 inv_list_name = ""
+doc_len_name = ""
 
 for o,a in optlist:
     if o=="-l": files_list_name = a
     if o=="-w": words_list_name = a
     if o=="-i": inv_list_name = a
 
+
+print("sort = "+sort)
 if "" in [files_list_name,words_list_name,inv_list_name]:
     usage()
     sys.exit(0)
@@ -94,7 +102,9 @@ words_list = {}
 word_id = 0
 words = []
 lists = []
+doc_len = []
 doc_id = 0
+total_docs = len(files)
 
 
 widgets = ['Generating inverted lists: ', progressbar.Percentage(),'     ',progressbar.ETA()]
@@ -104,6 +114,7 @@ for f_name in files:
         f_fp = open(f_name,"r")
         content = clean(f_fp.read())
         tokens = nltk.WordPunctTokenizer().tokenize(content)
+        doc_len.append(len(tokens))
         for w in tokens:
             if len(w)>32: continue
             try:
@@ -144,18 +155,29 @@ try:
     for w in words:
         words_list_fp.write(w[0]+"\n")
     words_list_fp.close()
+    doc_len_fp = open(inv_list_name+".doclen","w")
+    doc_len_fp.write("%d\n"%total_docs)
+    for i in range(0,len(doc_len)):
+        doc_len_fp.write("%d "%i)
+        doc_len_fp.write("%d"%doc_len[i])
+        doc_len_fp.write("\n")
+    doc_len_fp.close()
 
     inv_list_fp = open(inv_list_name+".invlist","w")
     inv_list_freq_fp = open(inv_list_name+".invlistfreq","w")
     for p in perm:
         l = lists[p]
         inv_list_fp.write("%d "%len(l))
-	inv_list_freq_fp.write("%d "%len(l))
-	k = sorted(lists[p] ,key=itemgetter(1) , reverse=True)
+      	inv_list_freq_fp.write("%d "%len(l))
+        if sort == "true":
+            k = sorted(lists[p] ,key=itemgetter(1) , reverse=True)
+        else:
+            k = lists[p]
         for (id,count) in k:
             inv_list_fp.write("%d "%id)
-	    inv_list_freq_fp.write("%d "%count)
-	inv_list_freq_fp.write("\n")
+      	    inv_list_freq_fp.write("%d "%count)
+
+        inv_list_freq_fp.write("\n")
         inv_list_fp.write("\n")
         progress.update(c)
         c += 1
