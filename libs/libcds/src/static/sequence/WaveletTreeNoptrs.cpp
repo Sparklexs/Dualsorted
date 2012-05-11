@@ -379,7 +379,7 @@ namespace cds_static
 				return;
 			}
 			//result.push_back(pair<uint,size_t>(am->unmap(sym),j-i+1));
-			cout << "Adding -> " << am->unmap(sym) << " , "  << j-i+1 << endl;
+//			cout << "Adding -> " << am->unmap(sym) << " , "  << j-i+1 << endl;
 		}	
 
 	}
@@ -393,10 +393,10 @@ namespace cds_static
 
 	void WaveletTreeNoptrs::range_intersect(uint lev, size_t x_start, size_t x_end,size_t y_start, size_t y_end,uint sym, size_t start, size_t end)
 	{
-		cout << "x_start = " << x_start << endl;
-		cout << "x_end = " << x_end << endl;
-		cout << "x_start = " << y_start << endl;
-		cout << "y_end = " << y_end << endl;
+//		cout << "x_start = " << x_start << endl;
+//		cout << "x_end = " << x_end << endl;
+//		cout << "x_start = " << y_start << endl;
+//		cout << "y_end = " << y_end << endl;
 		size_t x_start_left,x_start_right,x_end_left,x_end_right;
 		size_t y_start_left,y_start_right,y_end_left,y_end_right;
 
@@ -450,7 +450,7 @@ namespace cds_static
 			{
 				return;
 			}
-			cout << "Adding -> " << am->unmap(sym) << " , "  << endl;
+//			cout << "Adding -> " << am->unmap(sym) << " , "  << endl;
 		}	
 
 	}
@@ -463,25 +463,17 @@ namespace cds_static
 
 	void WaveletTreeNoptrs::n_range_intersect(uint lev, size_t * x_start, size_t *x_end,uint sym, size_t start, size_t end,size_t n_ranges)
 	{
-		size_t *x_start_left = new size_t[n_ranges];
-		size_t *x_start_right = new size_t[n_ranges];
-		size_t *x_end_left = new size_t[n_ranges];
-		size_t *x_end_right = new size_t[n_ranges];
-		
-
-		size_t before;
-		size_t end_left;
-		size_t end_right;
-		size_t start_left;
-		size_t start_right;
-
 		/*size_t *before = new size_t[n_ranges];
 		size_t *end_left = new size_t[n_ranges];
 		size_t *end_right = new size_t[n_ranges];
 		size_t *start_left = new size_t[n_ranges];
 		size_t *start_right = new size_t[n_ranges];
 		*/
+		if (start > end)
+			return;
 
+		if (end > n-1)
+			return;
 		size_t *rank_left_x = new size_t[n_ranges];
 		size_t *rank_right_x = new size_t[n_ranges];
 	//	cout << "LEVEL = " << lev << endl;
@@ -489,6 +481,18 @@ namespace cds_static
 
 		if (lev < height)
 		{
+			size_t *x_start_left = new size_t[n_ranges];
+			size_t *x_start_right = new size_t[n_ranges];
+			size_t *x_end_left = new size_t[n_ranges];
+			size_t *x_end_right = new size_t[n_ranges];
+		
+
+			size_t before;
+			size_t end_left;
+			size_t end_right;
+			size_t start_left;
+			size_t start_right;
+
 			BitSequence* bs = bitstring[lev];
 			if (start==0) before=0;
 				else before = bs->rank1(start-1);
@@ -499,12 +503,10 @@ namespace cds_static
 				rank_left_x[i] = bs->rank1(start+x_start[i]-1);
 				rank_right_x[i] = bs->rank1(start+x_end[i]);
 
-						// First go left
 				x_start_left[i] = x_start[i] - (rank_left_x[i] - before);
 				x_end_left[i] = x_end[i] - (rank_right_x[i] - before);
 				if (x_start_left[i] > x_end_left[i])
 					return;
-						// set the new Start and End for the goLeft case
 			}
 			end_left = end - (bs->rank1(end) - before);
 			start_left = start;
@@ -513,7 +515,7 @@ namespace cds_static
 
 			sym=set(sym,lev);	
 
-			start_right = end - (bs->rank1(end)-before) + 1;
+			start_right = end - end_left + 1;
 			end_right = end;
 
 			for (size_t i = 0 ; i < n_ranges;i++)
@@ -527,10 +529,12 @@ namespace cds_static
 		}
 		else
 		{
-		//	cout << "Adding (right) sym[0 " << "] = " << sym << endl;		
+			cout << "Adding (right) sym[0 " << "] = " << sym << endl;		
 		}
+//		delete[] x_start_right;
+//		delete[] x_end_right;
 	}
-	
+
 
 
 
@@ -585,7 +589,7 @@ namespace cds_static
 				return;
 				
 			result.push_back(am->unmap(sym));
-			cout << "Adding -> " << am->unmap(sym) << " , "  << endl;
+//			cout << "Adding -> " << am->unmap(sym) << " , "  << endl;
 		}	
 	}
    	uint WaveletTreeNoptrs::range(size_t posl,size_t posr,size_t i) const

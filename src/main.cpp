@@ -41,6 +41,8 @@ inline void executeAND(Dualsorted* ds, string ** terms, uint *qsizes,size_t tota
     size_t total_results = 0;
     for (uint i = 0 ; i < total_queries ; i++)
 	{
+	if (i % 100 == 0)
+		cout << " query = " << i << endl;
     	ds->intersect(terms[i],qsizes[i]);	
     }
     finish = clock();
@@ -216,7 +218,7 @@ void executeQueries(Dualsorted* ds,const char* queries,int query_type)
 	{
 	    vector <string> q;
 	    getline (qfile,str);
-		if (str.length() >=3)
+		if (str.length() >=0)
 		{
 			transform(str.begin(), str.end(),str.begin(), ::tolower);
    			Tokenize(str,q,filter);

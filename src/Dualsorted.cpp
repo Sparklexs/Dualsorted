@@ -188,6 +188,7 @@ inline void Dualsorted::intersect(string *terms,uint qsizes)
 	/*	cout << "start[" << i << "] = " << start[i] << endl;
 		cout << "end[" << i << "] = " << end[i] << endl;*/
 	}
+	cout << "start-end = " << end[0] - start[0] << endl;
 	//size_t x_start,size_t x_end,size_t y_start, size_t y_end)
 	//this->L->range_report_aux(start[0],end[0]);
 	//this->L->range_intersect_aux(start[0],end[0],start[1],end[1]);
