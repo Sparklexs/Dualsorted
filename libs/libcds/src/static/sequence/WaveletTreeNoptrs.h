@@ -81,7 +81,8 @@ namespace cds_static
 			void range_intersect(uint lev, size_t x_start, size_t x_end,size_t y_start, size_t y_end,uint sym, size_t start, size_t end);
 			void range_intersect_aux(size_t x_start,size_t x_end, size_t y_start, size_t y_end);
 		    void n_range_intersect_aux(size_t *x_start,size_t *x_end,size_t n_ranges);
-            void n_range_intersect(uint lev, size_t * x_start, size_t *x_end,uint sym, size_t start, size_t end,size_t n_ranges);
+            void n_range_intersect(uint lev, size_t * x_start, size_t *x_end,uint sym, size_t start, size_t end,size_t n_ranges,
+      size_t *x_start_left, size_t *x_start_right, size_t *x_end_left, size_t *x_end_right);
 			
             virtual void save(ofstream & fp) const;
             static WaveletTreeNoptrs * load(ifstream & fp);
