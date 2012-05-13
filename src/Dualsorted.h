@@ -25,7 +25,7 @@ class Dualsorted
 	private:
 		// Main Data Structures
 
-		WaveletTreeNoptrs *L;
+		WaveletMatrix *L;
 		BitSequence *st;
 		CompressedPsums ** ps;
         google::sparse_hash_map<string, uint> terms;

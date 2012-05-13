@@ -95,16 +95,29 @@ size_t Dualsorted::getSize()
 vector <uint> Dualsorted::getRange(string term,uint i)
 {
 	uint f = this->getTermPosition(term.c_str());
+	cout << "f = " << f << endl;
 	uint end,start;
 	(f != this->size_terms-1) ? end = this->st->select1(f+2)-1: end = this->L_size-1;
 	start = this->st->select1(f+1);
-	if (end-start < 2)
-		return vector<uint>();
-	if (start + i < end-1)
-	return this->L->range_report_aux(start,start+i);
+	//if (end-start < 2)
+	//	return vector<uint>();
+
+	if (start + i < end+1)
+	{
+		cout << "start = " << start << endl;
+		cout << "end = " << start+i << endl;
+		cout << "entre 1 !!!" << endl;
+		return this->L->range_report_aux(start-1,start+i-1);
+	}
 	else
-	return this->L->range_report_aux(start,end-1);
+	{
+		cout << "start = " << start << endl;
+		cout << "end = " << end << endl;
+		cout << "entre 2 !!!" << endl;
+		return this->L->range_report_aux(start,end);
+	}
 }
+/*
 uint Dualsorted::getDocid(string term,uint i)
 {
 	uint f = this->getTermPosition(term.c_str());
@@ -113,7 +126,7 @@ uint Dualsorted::getDocid(string term,uint i)
 	start = this->st->select1(f+1);
 	return this->L->range(start,end,i);
 }
-
+*/
 uint Dualsorted::getPosTerm(string t,uint d)
 {  
     uint f = this->getTermPosition(t.c_str());
@@ -194,14 +207,15 @@ inline void Dualsorted::intersect(string *terms,uint qsizes)
 	//this->L->range_intersect_aux(start[0],end[0],start[1],end[1]);
 	this->L->n_range_intersect_aux(start,end,qsizes);
 }
-vector < pair<uint,size_t> > Dualsorted::mrqq(string term, size_t k, size_t kp)
+/*vector < pair<uint,size_t> > Dualsorted::mrqq(string term, size_t k, size_t kp)
 {
 	uint f = this->getTermPosition(term.c_str());
 	uint end,start;
 	(f != this->size_terms-1) ? end = this->st->select1(f+2)-1 : end = this->L_size-1;		                                             
 	start = this->st->select1(f+1);
-	return this->L->mrqq(start,end,k,kp);
-}
+	return this->L->range_report_aux(start,end);
+	return NULL
+}*/
 
 uint Dualsorted::getPostingSize(string term)
 {
@@ -288,7 +302,7 @@ Sequence * Dualsorted::buildL()
     
 //   	BitSequenceBuilder * bsb = new BitSequenceBuilderRRR(50);
    	BitSequenceBuilder * bsb = new BitSequenceBuilderRG(2);
-   	WaveletTreeNoptrs* seq = new WaveletTreeNoptrs(*A, bsb, map);		
+   	WaveletMatrix* seq = new WaveletMatrix(*A, bsb, map);		
 
 	this->L = seq;
     return this->L;

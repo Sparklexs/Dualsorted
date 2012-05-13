@@ -65,10 +65,13 @@ inline void executeOR(Dualsorted* ds, string ** terms, uint *qsizes,size_t total
 		for (uint j = 0 ; j < qsizes[i] ; j++)
 		{
 		uint posting_size = ds->getPostingSize(terms[i][j].c_str());
-		if (posting_size < 2) continue;
-			vector <uint> results = ds->getRange(terms[i][j],posting_size-2);	
+		cout << "term = " << terms[i][j] << endl;
+		cout << "posting_size = " << posting_size << endl;
+			vector <uint> results = ds->getRange(terms[i][j],posting_size);	
+			cout << "result_sisze =" << results.size() << endl;
     		for (uint x = 0 ; x < results.size();x++)
 	    	{
+
 				total_results++;
 	        	//documents[test[x]] = 1; 
         	}
